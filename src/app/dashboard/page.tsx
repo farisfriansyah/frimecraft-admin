@@ -1,112 +1,173 @@
 // src/app/dashboard/page.tsx
-import { redirect } from "next/navigation";
+import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
-import Navbar from "@/src/components/ui/Navbar";
-import Sidebar from "@/src/components/ui/Sidebar";
-import StatsCard from "@/src/components/ui/Statscard";
-import PortfolioCard from "@/src/components/ui/PortfolioCard";
-import React from "react";
+import { redirect } from "next/navigation";
 
-export default async function Dashboard() {
+import {
+  Briefcase,
+  Wrench,
+  Calendar,
+  Award,
+  Plus,
+} from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+import Link from "next/link";
+
+// Import tipe Prisma secara eksplisit dari instance yang sudah dibuat
+import type { Portfolio, Skill, WorkExperience, Certification } from "@prisma/client";
+
+export default async function DashboardPage() {
   const session = await getSession();
   if (!session?.userId) redirect("/login");
 
-  // Example data (in future, fetch from API)
-  const stats = [
-    { title: "Portfolios", value: 12, subtitle: "Total published" },
-    { title: "Views (30d)", value: "4.2k", subtitle: "Last 30 days" },
-    { title: "Skills", value: 18, subtitle: "Tracked skills" },
-    { title: "Certifications", value: 3, subtitle: "Verified" },
-  ];
+  const [portfolios, skillCount, workCount, certCount] = await Promise.all([
+    db.portfolio.findMany({
+      where: { userId: session.userId },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+    }),
+    db.skill.count({ where: { userId: session.userId } }),
+    db.workExperience.count({ where: { userId: session.userId } }),
+    db.certification.count({ where: { userId: session.userId } }),
+  ]);
 
-  const portfolios = [
+  const featuredCount = portfolios.filter((p): p is Portfolio => p.featured === true).length;
+
+  const stats = [
     {
-      id: 1,
-      title: "Product Dashboard UI",
-      image: "/mnt/data/1440w default.jpg",
-      description: "Redesign dashboard untuk SaaS manajemen tugas.",
-      tags: "dashboard,saas,ui",
+      title: "Portfolios",
+      value: portfolios.length,
+      icon: Briefcase,
+      desc: `${featuredCount} featured`,
     },
-    {
-      id: 2,
-      title: "E-commerce Landing Page",
-      image: "/mnt/data/1440w default.jpg",
-      description: "Landing page konversi tinggi untuk brand FMCG.",
-      tags: "landing,ecommerce,ui",
-    },
-    {
-      id: 3,
-      title: "Mobile App (Prototype)",
-      image: "/mnt/data/1440w default.jpg",
-      description: "Prototype mobile banking & payments.",
-      tags: "mobile,prototype,ui",
-    },
+    { title: "Skills", value: skillCount, icon: Wrench, desc: "Dikuasai" },
+    { title: "Work Experience", value: workCount, icon: Calendar, desc: "Perusahaan" },
+    { title: "Certifications", value: certCount, icon: Award, desc: "Terverifikasi" },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="flex gap-6">
-          <Sidebar />
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold tracking-tight">
+          Selamat datang kembali!
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Ini ringkasan portfolio dan aktivitas kamu
+        </p>
+      </div>
 
-          <main className="flex-1">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold">Selamat datang, Admin!</h1>
-              <p className="text-slate-600 mt-2">
-                Kelola portfolio, skills, pendidikan, dan experience di sini.
-              </p>
-            </div>
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card
+            key={stat.title}
+            className="hover:shadow-lg transition-shadow duration-300"
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-1">{stat.desc}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-            <section className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              {stats.map((s) => (
-                <StatsCard key={s.title} title={s.title} value={s.value} subtitle={s.subtitle} />
-              ))}
-            </section>
-
-            <section className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Recent Portfolios</h2>
-                <a
-                  href="/dashboard/portfolios"
-                  className="text-sm text-indigo-600 hover:underline"
-                >
-                  View all
-                </a>
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Recent Portfolios */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Recent Portfolios</CardTitle>
+                <CardDescription>Project terbaru kamu</CardDescription>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {portfolios.map((p) => (
-                  <PortfolioCard
-                    key={p.id}
-                    title={p.title}
-                    image={p.image}
-                    description={p.description}
-                    tags={p.tags}
-                  />
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard/portfolios">Lihat semua</Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {portfolios.length === 0 ? (
+              <p className="text-center py-12 text-muted-foreground">
+                Belum ada portfolio
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {portfolios.slice(0, 5).map((portfolio) => (
+                  <div key={portfolio.id} className="flex items-center gap-4">
+                    {portfolio.imageUrl ? (
+                      <Image
+                        src={portfolio.imageUrl}
+                        alt={portfolio.title}
+                        width={80}
+                        height={60}
+                        className="rounded-md object-cover"
+                      />
+                    ) : (
+                      <div className="bg-muted border-2 border-dashed rounded-md w-20 h-16" />
+                    )}
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{portfolio.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {portfolio.featured && (
+                          <Badge variant="secondary" className="text-xs">
+                            Featured
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(portfolio.createdAt).toLocaleDateString("id-ID")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
-            </section>
+            )}
+          </CardContent>
+        </Card>
 
-            <section>
-              <h3 className="text-lg font-semibold mb-3">Quick Links</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <a
-                  href="/dashboard/portfolios/new"
-                  className="block rounded-md bg-white border p-4 hover:shadow"
-                >
-                  Create Portfolio
-                </a>
-                <a href="/dashboard/skills" className="block rounded-md bg-white border p-4 hover:shadow">
-                  Manage Skills
-                </a>
-                <a href="/dashboard/works" className="block rounded-md bg-white border p-4 hover:shadow">
-                  Manage Experiences
-                </a>
-              </div>
-            </section>
-          </main>
-        </div>
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Akses cepat</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            <Button asChild className="justify-start">
+              <Link href="/dashboard/portfolios/new" className="flex items-center gap-3">
+                <Plus className="h-4 w-4" />
+                Tambah Portfolio
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="justify-start">
+              <Link href="/dashboard/skills" className="flex items-center gap-3">
+                <Wrench className="h-4 w-4" />
+                Kelola Skills
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="justify-start">
+              <Link href="/dashboard/works" className="flex items-center gap-3">
+                <Briefcase className="h-4 w-4" />
+                Work Experience
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  workExperiences  WorkExperience[]
+  educations       Education[]
+  skills           Skill[]
+  languages        Language[]
+  certifications   Certification[]
+  portfolios       Portfolio[]
+
+  @@map("users")
+}
+
+model WorkExperience {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  company     String
+  role        String
+  location    String?
+  startDate   DateTime
+  endDate     DateTime?
+  description String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("work_experiences")
+}
+
+model Education {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  institution String
+  degree      String?
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("educations")
+}
+
+model Skill {
+  id        Int    @id @default(autoincrement())
+  userId    Int
+  name      String
+  level     Int?   // 0-100
+  notes     String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("skills")
+}
+
+model Language {
+  id         Int    @id @default(autoincrement())
+  userId     Int
+  name       String
+  proficiency String? // e.g. "Native", "Fluent", "Intermediate"
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("languages")
+}
+
+model Certification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String
+  issuer    String?
+  issueDate DateTime?
+  url       String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("certifications")
+}
+
+model Portfolio {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  title       String
+  description String?
+  imageUrl    String?  // file path or hosted URL
+  projectUrl  String?
+  tags        String?  // comma-separated tags
+  featured    Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("portfolios")
+}

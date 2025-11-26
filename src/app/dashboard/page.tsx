@@ -1,6 +1,6 @@
 // src/app/dashboard/page.tsx
-import { db } from "@/src/lib/prisma";
-import { getSession } from "@/src/lib/session";
+import { db } from "@/src/lib/prisma";                    // BENAR
+import { getSession } from "@/src/lib/session";              // BENAR
 import { redirect } from "next/navigation";
 
 import {
@@ -22,9 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
-
-// Import tipe Prisma secara eksplisit dari instance yang sudah dibuat
-import type { Portfolio, Skill, WorkExperience, Certification } from "@prisma/client";
+import type { Portfolio } from "@prisma/client";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -41,15 +39,10 @@ export default async function DashboardPage() {
     db.certification.count({ where: { userId: session.userId } }),
   ]);
 
-  const featuredCount = portfolios.filter((p): p is Portfolio => p.featured === true).length;
+  const featuredCount = portfolios.filter(p => p.featured).length;
 
   const stats = [
-    {
-      title: "Portfolios",
-      value: portfolios.length,
-      icon: Briefcase,
-      desc: `${featuredCount} featured`,
-    },
+    { title: "Portfolios", value: portfolios.length, icon: Briefcase, desc: `${featuredCount} featured` },
     { title: "Skills", value: skillCount, icon: Wrench, desc: "Dikuasai" },
     { title: "Work Experience", value: workCount, icon: Calendar, desc: "Perusahaan" },
     { title: "Certifications", value: certCount, icon: Award, desc: "Terverifikasi" },
@@ -58,25 +51,16 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-bold tracking-tight">
-          Selamat datang kembali!
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Ini ringkasan portfolio dan aktivitas kamu
-        </p>
+        <h1 className="text-4xl font-bold tracking-tight">Selamat datang kembali!</h1>
+        <p className="text-muted-foreground mt-2">Ini ringkasan portfolio dan aktivitas kamu</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card
-            key={stat.title}
-            className="hover:shadow-lg transition-shadow duration-300"
-          >
+          <Card key={stat.title} className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
               <stat.icon className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -103,13 +87,15 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             {portfolios.length === 0 ? (
-              <p className="text-center py-12 text-muted-foreground">
-                Belum ada portfolio
-              </p>
+              <p className="text-center py-12 text-muted-foreground">Belum ada portfolio</p>
             ) : (
               <div className="space-y-4">
                 {portfolios.slice(0, 5).map((portfolio) => (
-                  <div key={portfolio.id} className="flex items-center gap-4">
+                  <Link
+                    key={portfolio.id}
+                    href={`/dashboard/portfolios/${portfolio.id}`}
+                    className="flex items-center gap-4 hover:bg-muted/50 p-3 -m-3 rounded-lg transition"
+                  >
                     {portfolio.imageUrl ? (
                       <Image
                         src={portfolio.imageUrl}
@@ -124,17 +110,13 @@ export default async function DashboardPage() {
                     <div className="flex-1">
                       <p className="font-medium text-sm">{portfolio.title}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        {portfolio.featured && (
-                          <Badge variant="secondary" className="text-xs">
-                            Featured
-                          </Badge>
-                        )}
+                        {portfolio.featured && <Badge variant="secondary" className="text-xs">Featured</Badge>}
                         <span className="text-xs text-muted-foreground">
                           {new Date(portfolio.createdAt).toLocaleDateString("id-ID")}
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -148,20 +130,20 @@ export default async function DashboardPage() {
             <CardDescription>Akses cepat</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <Button asChild className="justify-start">
-              <Link href="/dashboard/portfolios/new" className="flex items-center gap-3">
+            <Button asChild>
+              <Link href="/dashboard/portfolios/create" className="flex items-center justify-center gap-3">
                 <Plus className="h-4 w-4" />
-                Tambah Portfolio
+                Tambah Portfolio Baru
               </Link>
             </Button>
-            <Button variant="outline" asChild className="justify-start">
-              <Link href="/dashboard/skills" className="flex items-center gap-3">
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/skills" className="flex items-center justify-center gap-3">
                 <Wrench className="h-4 w-4" />
                 Kelola Skills
               </Link>
             </Button>
-            <Button variant="outline" asChild className="justify-start">
-              <Link href="/dashboard/works" className="flex items-center gap-3">
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/works" className="flex items-center justify-center gap-3">
                 <Briefcase className="h-4 w-4" />
                 Work Experience
               </Link>

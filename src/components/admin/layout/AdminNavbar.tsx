@@ -1,7 +1,7 @@
 // src/components/admin/layout/AdminNavbar.tsx
 "use client";
 
-import { ModeToggle } from "@/src/components/mode-toggle"; // pastikan path ini benar
+import { ModeToggle } from "@/src/components/mode-toggle";  // BENAR! (bukan @/src/...)
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,

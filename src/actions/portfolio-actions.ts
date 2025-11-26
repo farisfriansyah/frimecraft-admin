@@ -4,8 +4,18 @@
 import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
 import { revalidatePath } from "next/cache";
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+
+// === HELPER: Pastikan folder ada ===
+async function ensureDirectoryExists(filePath: string) {
+  const dir = path.dirname(filePath);
+  try {
+    await mkdir(dir, { recursive: true });
+  } catch (error: any) {
+    if (error.code !== "EEXIST") throw error;
+  }
+}
 
 // === CREATE PORTFOLIO ===
 export async function createPortfolioAction(formData: FormData) {
@@ -19,11 +29,12 @@ export async function createPortfolioAction(formData: FormData) {
     const bytes = await imageFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Buat nama file unik
     const filename = `${Date.now()}-${imageFile.name.replace(/\s+/g, "-")}`;
     const filepath = path.join(process.cwd(), "public", "uploads", "portfolio", filename);
 
-    // Pastikan folder ada
+    // INI YANG PENTING: AUTO BUAT FOLDER KALAU BELUM ADA!
+    await ensureDirectoryExists(filepath);
+
     await writeFile(filepath, buffer);
     imageUrl = `/uploads/portfolio/${filename}`;
   }
@@ -60,6 +71,10 @@ export async function updatePortfolioAction(id: number, formData: FormData) {
     const buffer = Buffer.from(bytes);
     const filename = `${Date.now()}-${imageFile.name.replace(/\s+/g, "-")}`;
     const filepath = path.join(process.cwd(), "public", "uploads", "portfolio", filename);
+
+    // AUTO CREATE FOLDER
+    await ensureDirectoryExists(filepath);
+
     await writeFile(filepath, buffer);
     imageUrl = `/uploads/portfolio/${filename}`;
   }
@@ -83,14 +98,17 @@ export async function updatePortfolioAction(id: number, formData: FormData) {
   return updatedPortfolio;
 }
 
-// === DELETE PORTFOLIO (opsional, untuk nanti) ===
+// TAMBAHKAN INI — DELETE PORTFOLIO ACTION!
 export async function deletePortfolioAction(id: number) {
   const session = await getSession();
   if (!session?.userId) throw new Error("Unauthorized");
 
   await db.portfolio.delete({
-    where: { id },
+    where: { 
+      id,
+      userId: session.userId 
+    },
   });
 
-  revalidatePath("/portfolios");
+  revalidatePath("/dashboard/portfolios");
 }

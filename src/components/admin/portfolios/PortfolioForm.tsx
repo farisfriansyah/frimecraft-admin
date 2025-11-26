@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "./RichTextEditor";
-import CompanySelect from "./CompanySelect";
+import CompanySelect from "@/src/components/admin/common/CompanySelect";
 import ImageUpload from "./ImageUpload";
 import { TagsInput } from "@/src/components/ui/tags-input";
 import { createPortfolioAction, updatePortfolioAction } from "@/src/actions/portfolio-actions";
@@ -99,10 +99,10 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
       }
 
       if (saveAndAddAnother) {
-        router.push("/portfolios/create");
+        router.push("/dashboard/portfolios/create");
         toast("Siap tambah portfolio baru!", { icon: "rocket" });
       } else {
-        router.push("/portfolios");
+        router.push("/dashboard/portfolios");
       }
       router.refresh();
     } catch (error: any) {

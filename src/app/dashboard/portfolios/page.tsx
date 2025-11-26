@@ -20,7 +20,8 @@ export default async function PortfoliosPage() {
   });
 
   return (
-    <div className="container max-w-7xl py-10 space-y-8">
+    // <div className="container max-w-7xl py-10 space-y-8">
+    <div className="container space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Portfolios</h1>

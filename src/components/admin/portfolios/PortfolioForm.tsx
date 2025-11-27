@@ -111,13 +111,13 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="overflow-y-hidden">
       {/* Header Fixed */}
       <div className="relative top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 max-w-7xl items-center justify-between px-6">
+        <div className="container flex h-16 max-w-7xl items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
-              <Link href="/portfolios">
+              <Link href="/dashboard/portfolios">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
             </Button>
@@ -129,7 +129,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
       </div>
 
       {/* Main Content */}
-      <div className="container max-w-7xl px-6 py-10">
+      <div className="container py-10">
         <form onSubmit={handleSubmit((data) => onSubmit(data, false))} className="grid gap-10 lg:grid-cols-12">
           {/* Left Column - Form Fields */}
           <div className="space-y-8 lg:col-span-8">
@@ -161,6 +161,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
                 {...register("projectUrl")}
                 placeholder="https://example.com"
                 className="font-mono"
+                value={watch("projectUrl") || "https://"}
               />
             </div>
 
@@ -250,7 +251,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
               )}
 
               <Button variant="ghost" asChild className="w-full">
-                <Link href="/portfolios">Batal</Link>
+                <Link href="/dashboard/portfolios">Batal</Link>
               </Button>
             </div>
           </div>

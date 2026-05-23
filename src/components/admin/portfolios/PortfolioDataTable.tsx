@@ -212,7 +212,7 @@ export function PortfolioDataTable({ data }: Props) {
                   e.preventDefault();
                   if (confirm("Yakin ingin menghapus portfolio ini?")) {
                     try {
-                      await deletePortfolioAction(portfolio.id);
+                      await deletePortfolioAction(String(portfolio.id));
                       toast.success("Portfolio dihapus!");
                     } catch {
                       toast.error("Gagal menghapus portfolio");
@@ -249,19 +249,38 @@ export function PortfolioDataTable({ data }: Props) {
     },
   });
 
-  // Bulk Delete Action
+  // Bulk Delete Action yang Sudah Diperbaiki
   const handleBulkDelete = async () => {
-    const selectedIds = Object.keys(rowSelection).map(Number);
+    // 1. Ambil baris data yang sedang dicentang secara akurat dari model tabel
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    
+    // 2. Map ke ID database asli (portfolio.id) bukan indeks baris visual
+    const selectedIds = selectedRows.map(row => row.original.id);
+    
     if (selectedIds.length === 0) return toast.error("Pilih minimal satu portfolio");
 
-    if (!confirm(`Hapus ${selectedIds.length} portfolio?`)) return;
+    if (!confirm(`Hapus ${selectedIds.length} portfolio yang dipilih beserta file gambarnya?`)) return;
 
     try {
-      await Promise.all(selectedIds.map(id => deletePortfolioAction(id)));
-      toast.success(`${selectedIds.length} portfolio berhasil dihapus!`);
-      table.resetRowSelection();
-    } catch {
-      toast.error("Gagal menghapus beberapa portfolio");
+      // 3. Eksekusi semua proses hapus ke server secara paralel
+      const results = await Promise.all(
+        selectedIds.map(id => deletePortfolioAction(id))
+      );
+
+      // 4. Periksa apakah ada baris yang gagal dihapus di sisi server
+      const failedDelete = results.find(res => res && !res.success);
+      if (failedDelete) {
+        toast.error(failedDelete.error || "Gagal menghapus beberapa portfolio");
+        return;
+      }
+
+      // Sukses total
+      toast.success(`${selectedIds.length} portfolio berhasil dihapus secara permanen!`);
+      table.resetRowSelection(); // Bersihkan tanda centang di tabel
+      
+    } catch (error) {
+      console.error("Bulk delete error:", error);
+      toast.error("Terjadi kesalahan saat menghapus massal");
     }
   };
 

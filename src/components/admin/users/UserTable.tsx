@@ -1,8 +1,10 @@
-// src/app/admin/users/UserTable.tsx
+// src/components/admin/users/UserTable.tsx
 "use client";
 
-import { useState } from "react";
-import { updateUserRole, toggleUserStatus } from "@/src/actions/rbac";
+import { useState, useEffect } from "react";
+import { toggleUserStatus } from "@/src/actions/rbac";
+import { Pencil } from "lucide-react";
+import Link from "next/link";
 
 interface Role {
   id: number;
@@ -21,38 +23,34 @@ interface User {
 
 interface UserTableProps {
   users: User[];
-  roles: any[];
+  currentAdminId: number;
+  permissions: {
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
 }
 
-export default function UserTable({ users: initialUsers, roles }: UserTableProps) {
+export default function UserTable({ users: initialUsers, currentAdminId, permissions }: UserTableProps) {
   const [users, setUsers] = useState(initialUsers);
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
-  // Fungsi pengubah Peran Pengguna (Sudah Diperbaiki & Sinkron)
-  const handleRoleChange = async (userId: number, roleId: number) => {
-    setLoadingId(userId);
-    const result = await updateUserRole(userId, roleId);
-    
-    if (result.success) {
-      // Perbarui state lokal agar data roleId terbaru terkunci di memori client
-      setUsers((prevUsers) =>
-        prevUsers.map((u) => (u.id === userId ? { ...u, roleId: roleId } : u))
-      );
-    } else {
-      // Jika gagal, dropdown otomatis kembali ke nilai semula karena menggunakan controlled 'value'
-      alert(result.message);
-    }
-    setLoadingId(null);
-  };
+  // Sinkronisasikan state lokal jika ada pembaruan data dari sisi server (revalidate)
+  useEffect(() => { 
+    setUsers(initialUsers); 
+  }, [initialUsers]);
 
-  // Fungsi pengubah Status Hak Akses Akun
+  // Fungsi pengubah Status Akses Akun (Aktif / Nonaktif)
   const handleToggleStatus = async (userId: number, currentStatus: boolean) => {
+    if (userId === currentAdminId) {
+      return alert("Anda tidak bisa menonaktifkan akun Anda sendiri yang sedang dipakai!");
+    }
+    
     setLoadingId(userId);
     const result = await toggleUserStatus(userId, currentStatus);
     
     if (result.success) {
-      setUsers((prevUsers) =>
-        prevUsers.map((u) => (u.id === userId ? { ...u, isActive: !currentStatus } : u))
+      setUsers((prev) => 
+        prev.map((u) => (u.id === userId ? { ...u, isActive: !currentStatus } : u))
       );
     } else {
       alert(result.message);
@@ -76,28 +74,20 @@ export default function UserTable({ users: initialUsers, roles }: UserTableProps
           <tbody className="divide-y divide-border text-sm">
             {users.map((user) => (
               <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                {/* Kolom Profil */}
+                
+                {/* Kolom Informasi Profil */}
                 <td className="p-4">
                   <div className="font-medium text-foreground">{user.name || "Tanpa Nama"}</div>
                   <div className="text-xs text-muted-foreground">{user.email}</div>
                 </td>
                 
-                {/* Kolom Seleksi Peran (Controlled & Anti-Spam) */}
+                {/* Kolom Badge Peran (Role) */}
                 <td className="p-4">
-                  <select
-                    value={user.roleId} // PERBAIKAN: Menggunakan 'value' agar tersinkronisasi penuh dengan state React
-                    disabled={loadingId === user.id} // Mengunci dropdown saat proses penyimpanan sedang berlangsung
-                    onChange={(e) => handleRoleChange(user.id, Number(e.target.value))}
-                    className="bg-background border border-input text-foreground text-xs rounded-md p-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 transition-all"
-                  >
-                    {roles.map((role) => (
-                      <option key={role.id} value={role.id} className="bg-background text-foreground">
-                        {role.name}
-                      </option>
-                    ))}
-                  </select>
+                  <span className="text-xs font-mono bg-muted border border-border/80 px-2.5 py-1 rounded-md text-foreground font-semibold uppercase">
+                    {user.role?.name || "NO_ROLE"}
+                  </span>
                 </td>
-
+                
                 {/* Kolom Status Akun */}
                 <td className="p-4">
                   <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full ${
@@ -114,20 +104,34 @@ export default function UserTable({ users: initialUsers, roles }: UserTableProps
                   {user.lastLogin ? new Date(user.lastLogin).toLocaleString("id-ID") : "Belum pernah"}
                 </td>
                 
-                {/* Kolom Tombol Aksi Kendali */}
-                <td className="p-4 text-right">
-                  <button
-                    type="button"
-                    disabled={loadingId === user.id}
-                    onClick={() => handleToggleStatus(user.id, user.isActive)}
-                    className={`text-xs font-medium px-3 py-1.5 rounded-md border transition-all ${
-                      user.isActive 
-                        ? "border-destructive/40 text-destructive hover:bg-destructive/10" 
-                        : "border-primary/40 text-primary hover:bg-primary/10"
-                    } disabled:opacity-50`}
+                {/* Kolom Tombol Panel Aksi */}
+                <td className="p-4 text-right space-x-2">
+                  
+                  {/* Tautan Navigasi ke Halaman Edit Mandiri */}
+                  <Link
+                    href={`/admin/users/edit/${user.id}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md border border-input bg-background hover:bg-accent text-foreground transition-all"
                   >
-                    {loadingId === user.id ? "Memproses..." : user.isActive ? "Nonaktifkan" : "Aktifkan"}
-                  </button>
+                    <Pencil className="h-3.5 w-3.5" />
+                    Edit
+                  </Link>
+
+                  {/* Tombol Cepat Nonaktifkan / Aktifkan Akun */}
+                  {permissions.canUpdate && (
+                    <button
+                      type="button"
+                      disabled={loadingId === user.id || user.id === currentAdminId}
+                      onClick={() => handleToggleStatus(user.id, user.isActive)}
+                      className={`text-xs font-medium px-2.5 py-1.5 rounded-md border transition-all ${
+                        user.isActive 
+                          ? "border-destructive/40 text-destructive hover:bg-destructive/10" 
+                          : "border-primary/40 text-primary hover:bg-primary/10"
+                      } disabled:opacity-30`}
+                    >
+                      {loadingId === user.id ? "..." : user.isActive ? "Nonaktifkan" : "Aktifkan"}
+                    </button>
+                  )}
+
                 </td>
               </tr>
             ))}

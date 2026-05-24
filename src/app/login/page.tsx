@@ -1,49 +1,41 @@
-// src/app/login/page.tsx
-
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';  // Import langsung dari sonner
-import { useState } from 'react';
+import { toast } from 'sonner';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { loginAction } from '@/src/actions/auth-actions'; // Impor Server Action
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-
     const formData = new FormData(e.currentTarget);
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: formData.get('email'),
-        password: formData.get('password'),
-      }),
-    });
 
-    if (res.ok) {
-      toast.success('Login berhasil!', {
-        description: 'Selamat datang di dashboard admin.',
-      });
-      router.push('/admin');
-      router.refresh();
-    } else {
-      toast.error('Gagal login', {
-        description: 'Email atau password salah.',
-      });
-    }
-    setLoading(false);
+    startTransition(async () => {
+      const result = await loginAction(formData);
+
+      if (result.success) {
+        toast.success('Login berhasil!', {
+          description: 'Selamat datang di dashboard admin.',
+        });
+        // Gunakan replace agar user tidak bisa kembali ke halaman login via tombol "Back"
+        router.replace('/admin'); 
+      } else {
+        toast.error('Gagal login', {
+          description: result.message || 'Email atau password salah.',
+        });
+      }
+    });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Frimecraft Admin</CardTitle>
@@ -61,7 +53,6 @@ export default function LoginPage() {
                 type="email"
                 placeholder="admin@frimecraft.com"
                 required
-                defaultValue="admin@frimecraft.com"
               />
             </div>
             <div className="space-y-2">
@@ -72,11 +63,10 @@ export default function LoginPage() {
                 type="password"
                 placeholder="••••••••"
                 required
-                defaultValue="rahasia123"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? (
                 <span className="flex items-center">
                   <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

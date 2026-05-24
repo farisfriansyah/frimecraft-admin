@@ -1,4 +1,4 @@
-// src/components/admin/AdminSidebar.tsx
+// src/components/admin/layout/AdminSidebar.tsx
 "use client";
 
 import {
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/src/lib/utils";
 import { useState } from "react";
 
 const navItems = [

@@ -153,7 +153,7 @@ export async function deletePortfolioAction(id: string | number) {
     });
 
     // Revalidasi halaman agar data terbaru langsung tampil tanpa reload manual
-    revalidatePath("/dashboard/portfolios");
+    revalidatePath("/admin/portfolios");
     revalidatePath("/portfolios");
     
     return { success: true };

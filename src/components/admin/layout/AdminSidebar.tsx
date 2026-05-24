@@ -7,6 +7,7 @@ import {
   GraduationCap,
   Wrench,
   Languages,
+  User,
   Award,
   LogOut,
   Menu,
@@ -20,13 +21,14 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const navItems = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/portfolios", label: "Portfolios", icon: Briefcase },
-  { href: "/dashboard/works", label: "Work Experience", icon: Briefcase },
-  { href: "/dashboard/education", label: "Education", icon: GraduationCap },
-  { href: "/dashboard/skills", label: "Skills", icon: Wrench },
-  { href: "/dashboard/languages", label: "Languages", icon: Languages },
-  { href: "/dashboard/certifications", label: "Certifications", icon: Award },
+  { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/portfolios", label: "Portfolios", icon: Briefcase },
+  { href: "/admin/works", label: "Work Experience", icon: Briefcase },
+  { href: "/admin/education", label: "Education", icon: GraduationCap },
+  { href: "/admin/skills", label: "Skills", icon: Wrench },
+  { href: "/admin/languages", label: "Languages", icon: Languages },
+  { href: "/admin/users", label: "Users", icon: User },
+  { href: "/admin/certifications", label: "Certifications", icon: Award },
 ];
 
 export default function AdminSidebar() {
@@ -35,13 +37,13 @@ export default function AdminSidebar() {
 
   // LOGIKA AKTIF YANG 100% AKURAT
   const isActive = (href: string): boolean => {
-    // Exact match untuk /dashboard
-    if (href === "/dashboard") {
-      return pathname === "/dashboard";
+    // Exact match untuk /admin
+    if (href === "/admin") {
+      return pathname === "/admin";
     }
 
     // Untuk semua route lain: aktif jika pathname dimulai dengan href
-    // Contoh: /dashboard/portfolios/123 → tetap aktifkan "Portfolios"
+    // Contoh: /admin/portfolios/123 → tetap aktifkan "Portfolios"
     return pathname.startsWith(href);
   };
 

@@ -1,8 +1,8 @@
-// src/app/dashboard/portfolios/[id]/page.tsx
+// src/app/admin/experiences/[id]/page.tsx
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
-import PortfolioForm from "@/src/components/admin/experience/ExperienceForm";
+import ExperienceForm from "@/src/components/admin/experiences/ExperienceForm";
 import { notFound } from "next/navigation";
 
 // TAMBAHKAN INI: await params!

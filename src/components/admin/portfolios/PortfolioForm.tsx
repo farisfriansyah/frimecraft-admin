@@ -99,10 +99,10 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
       }
 
       if (saveAndAddAnother) {
-        router.push("/dashboard/portfolios/create");
+        router.push("/admin/portfolios/create");
         toast("Siap tambah portfolio baru!", { icon: "rocket" });
       } else {
-        router.push("/dashboard/portfolios");
+        router.push("/admin/portfolios");
       }
       router.refresh();
     } catch (error: any) {
@@ -117,7 +117,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
         <div className="container flex h-16 max-w-7xl items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
-              <Link href="/dashboard/portfolios">
+              <Link href="/admin/portfolios">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
             </Button>
@@ -251,7 +251,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
               )}
 
               <Button variant="ghost" asChild className="w-full">
-                <Link href="/dashboard/portfolios">Batal</Link>
+                <Link href="/admin/portfolios">Batal</Link>
               </Button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-// src/app/dashboard/experiences/page.tsx
+// src/app/admin/experiences/page.tsx
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
@@ -28,7 +28,7 @@ export default async function ExperiencesPage() {
           <p className="text-muted-foreground">Kelola semua pengalaman kerja kamu</p>
         </div>
         <Button asChild size="lg">
-          <Link href="/dashboard/experiences/create">
+          <Link href="/admin/experiences/create">
             <Plus className="mr-2 h-5 w-5" />
             Tambah Pengalaman Kerja
           </Link>

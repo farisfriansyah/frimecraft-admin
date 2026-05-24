@@ -110,5 +110,5 @@ export async function deleteExperienceAction(id: number) {
     },
   });
 
-  revalidatePath("/dashboard/experiences");
+  revalidatePath("/admin/experiences");
 }

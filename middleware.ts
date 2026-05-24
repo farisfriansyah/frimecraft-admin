@@ -10,8 +10,8 @@ const SECRET = new TextEncoder().encode(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect /dashboard/*
-  if (pathname.startsWith('/dashboard')) {
+  // Protect /admin/*
+  if (pathname.startsWith('/admin')) {
     const token = request.cookies.get('session')?.value;
 
     if (!token) {
@@ -34,5 +34,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/admin/:path*'],
 };

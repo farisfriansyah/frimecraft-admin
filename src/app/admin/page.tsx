@@ -1,4 +1,4 @@
-// src/app/dashboard/page.tsx
+// src/app/admin/page.tsx
 import { db } from "@/src/lib/prisma";                    // BENAR
 import { getSession } from "@/src/lib/session";              // BENAR
 import { redirect } from "next/navigation";
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
                 <CardDescription>Project terbaru kamu</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/dashboard/portfolios">Lihat semua</Link>
+                <Link href="/admin/portfolios">Lihat semua</Link>
               </Button>
             </div>
           </CardHeader>
@@ -93,7 +93,7 @@ export default async function DashboardPage() {
                 {portfolios.slice(0, 5).map((portfolio) => (
                   <Link
                     key={portfolio.id}
-                    href={`/dashboard/portfolios/${portfolio.id}`}
+                    href={`/admin/portfolios/${portfolio.id}`}
                     className="flex items-center gap-4 hover:bg-muted/50 p-3 -m-3 rounded-lg transition"
                   >
                     {portfolio.imageUrl ? (
@@ -131,19 +131,19 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="grid gap-3">
             <Button asChild>
-              <Link href="/dashboard/portfolios/create" className="flex items-center justify-center gap-3">
+              <Link href="/admin/portfolios/create" className="flex items-center justify-center gap-3">
                 <Plus className="h-4 w-4" />
                 Tambah Portfolio Baru
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/dashboard/skills" className="flex items-center justify-center gap-3">
+              <Link href="/admin/skills" className="flex items-center justify-center gap-3">
                 <Wrench className="h-4 w-4" />
                 Kelola Skills
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/dashboard/works" className="flex items-center justify-center gap-3">
+              <Link href="/admin/works" className="flex items-center justify-center gap-3">
                 <Briefcase className="h-4 w-4" />
                 Work Experience
               </Link>

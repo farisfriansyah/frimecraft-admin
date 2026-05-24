@@ -1,4 +1,4 @@
-// src/app/dashboard/portfolios/[id]/page.tsx
+// src/app/admin/portfolios/[id]/page.tsx
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";

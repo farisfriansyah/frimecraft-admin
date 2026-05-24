@@ -160,7 +160,7 @@ export default function PortfolioTable({ initialData }: Props) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Aksi</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href={`/dashboard/portfolios/${portfolio.id}`} className="flex items-center gap-2">
+                <Link href={`/admin/portfolios/${portfolio.id}`} className="flex items-center gap-2">
                   <Edit className="h-4 w-4" />
                   Edit
                 </Link>

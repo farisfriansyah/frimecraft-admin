@@ -1,4 +1,4 @@
-// src/app/dashboard/layout.tsx
+// src/app/admin/layout.tsx
 import AdminLayout from "@/src/components/admin/layout/AdminLayout";
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";

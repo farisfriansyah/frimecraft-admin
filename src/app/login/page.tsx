@@ -32,7 +32,7 @@ export default function LoginPage() {
       toast.success('Login berhasil!', {
         description: 'Selamat datang di dashboard admin.',
       });
-      router.push('/dashboard');
+      router.push('/admin');
       router.refresh();
     } else {
       toast.error('Gagal login', {

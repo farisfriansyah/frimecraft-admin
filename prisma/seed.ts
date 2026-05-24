@@ -212,7 +212,7 @@ async function main() {
           title: "Product Dashboard UI",
           description: "Redesign dashboard untuk SaaS manajemen tugas.",
           imageUrl: null,
-          projectUrl: "https://example.com/project/dashboard",
+          projectUrl: "https://example.com/project/admin",
           tags: "dashboard,saas,ui",
           featured: true
         },

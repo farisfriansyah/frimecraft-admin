@@ -1,4 +1,4 @@
-// src/app/dashboard/portfolios/page.tsx
+// src/app/admin/portfolios/page.tsx
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
@@ -28,7 +28,7 @@ export default async function PortfoliosPage() {
           <p className="text-muted-foreground">Kelola semua project portfolio kamu</p>
         </div>
         <Button asChild size="lg">
-          <Link href="/dashboard/portfolios/create">
+          <Link href="/admin/portfolios/create">
             <Plus className="mr-2 h-5 w-5" />
             Tambah Portfolio
           </Link>

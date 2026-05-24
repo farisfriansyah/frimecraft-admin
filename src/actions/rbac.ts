@@ -70,8 +70,11 @@ export async function updateRolePermissions(roleId: number, permissionIds: numbe
         },
       },
     });
-    revalidatePath("/admin/roles");
-    return { success: true, message: "Hak akses peran berhasil diperbarui" };
+
+    // SOLUSI SAKTI: Hancurkan seluruh cache payload halaman di bawah prefix /admin secara instan!
+    revalidatePath("/admin", "layout"); 
+    
+    return { success: true, message: "Hak akses peran berhasil diperbarui secara global!" };
   } catch (error) {
     console.error(error);
     return { success: false, message: "Gagal memperbarui hak akses" };

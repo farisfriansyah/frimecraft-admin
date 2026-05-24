@@ -1,55 +1,67 @@
 // src/app/admin/portfolios/edit/[id]/page.tsx
 import { getSession } from "@/src/lib/session";
-import { redirect } from "next/navigation";
-import { hasPermission } from "@/src/lib/rbac"; // Impor helper RBAC pusat
+import { redirect, notFound } from "next/navigation";
 import { db } from "@/src/lib/prisma";
+import { hasPermission } from "@/src/lib/rbac"; // <-- Wajib Impor Helper RBAC
 import PortfolioForm from "@/src/components/admin/portfolios/PortfolioForm";
-import { notFound } from "next/navigation";
 
 export const metadata = { title: "Edit Portfolio • Admin" };
 
-export default async function EditPortfolioPage({
-  params,
-}: {
+interface EditProps {
   params: Promise<{ id: string }>;
-}) {
-  // 1. UNWRAP params di awal sesuai standar Node/Next.js terbaru
+}
+
+export default async function EditPortfolioPage({ params }: EditProps) {
+  // 1. Ambil ID dari Parameter URL (Next.js 15+ menggunakan await params)
   const { id } = await params;
 
   // 2. Proteksi Autentikasi Sesi Login
   const session = await getSession();
   if (!session?.userId) redirect("/login");
 
-  // 3. PROTEKSI SERVER (RBAC): Tendang jika user tidak punya izin 'portfolio.update' atau 'all'
+  // ==========================================
+  // KUNCI UTAMA: Proteksi Otorisasi Hak Akses (RBAC)
+  // ==========================================
+  // Jika pengguna tidak punya izin 'portfolio.update' atau kunci master 'all',
+  // PostgreSQL akan menolak render halaman dan melempar pengguna kembali ke halaman utama.
   const canUpdate = await hasPermission(session.userId, "portfolio.update");
   if (!canUpdate) {
     redirect("/admin/portfolios?error=unauthorized");
   }
 
-  // 4. Pastikan ID parameter adalah angka valid
+  // 3. Pastikan ID adalah angka valid
   const portfolioId = Number(id);
   if (isNaN(portfolioId)) notFound();
 
-  // 5. Ambil data portfolio milik user yang sedang login
+  // 4. Ambil data portfolio spesifik milik user yang sedang login (keamanan berlapis)
   const portfolio = await db.portfolio.findFirst({
     where: {
       id: portfolioId,
-      userId: session.userId,
+      userId: session.userId, // Jaminan keamanan agar user tidak bisa edit portfolio milik orang lain via tembak ID
     },
   });
 
   if (!portfolio) notFound();
 
-  // 6. Ambil data master perusahaan relasi untuk keperluan dropdown form
+  // 5. Ambil data master companies untuk dropdown form
   const companies = await db.company.findMany({
     orderBy: { name: "asc" },
   });
 
   return (
-    <PortfolioForm
-      portfolio={portfolio}
-      companies={companies}
-      mode="edit"
-    />
+    <div className="container max-w-3xl py-10 space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Edit Portfolio</h1>
+        <p className="text-sm text-muted-foreground mt-1.5">
+          Perbarui informasi proyek portfolio kamu, termasuk judul, deskripsi, gambar, dan detail perusahaan terkait.
+        </p>
+      </div>
+
+      <PortfolioForm
+        portfolio={portfolio}
+        companies={companies}
+        mode="edit"
+      />
+    </div>
   );
 }

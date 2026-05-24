@@ -4,7 +4,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    // Memperbaiki warning deprecation sekalian
     remotePatterns: [
       {
         protocol: 'http',
@@ -16,10 +15,13 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  // Tambahkan konfigurasi di bawah ini untuk memperbesar batas upload gambar
+  
+  // MENCEGAH TURBOPACK MERUSAK ADAPTER CLIENT DI SISI SERVER ROUTER
+  serverExternalPackages: ["@prisma/client", "pg"],
+
   experimental: {
     serverActions: {
-      bodySizeLimit: "20mb", // Mengubah batas maksimal file menjadi 20 MB
+      bodySizeLimit: "20mb", 
     },
   },
 };

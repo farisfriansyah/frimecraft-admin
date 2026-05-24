@@ -1,34 +1,73 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Nilai URL sengaja dikosongkan dari schema karena sudah diatur secara terpusat oleh prisma.config.ts
 }
 
+// ==================== RBAC Models ====================
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique // Contoh: "ADMIN", "USER"
+  description String?
+  
+  permissions Permission[] @relation("RolePermissions")
+  users       User[]
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // Contoh: "portfolio.create", "all"
+  description String?
+  
+  roles       Role[]   @relation("RolePermissions")
+  
+  createdAt   DateTime @default(now())
+
+  @@map("permissions")
+}
+
+// ==================== Existing Models ====================
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  role      String   @default("ADMIN")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int              @id @default(autoincrement())
+  email           String           @unique
+  password        String
+  name            String?
+  avatar          String?
+  
+  roleId          Int
+  role            Role             @relation(fields: [roleId], references: [id])
+  
+  isActive        Boolean          @default(true)
+  lastLogin       DateTime?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   // relations
-  workExperiences  WorkExperience[]
-  educations       Education[]
-  skills           Skill[]
-  languages        Language[]
-  certifications   Certification[]
-  portfolios       Portfolio[]
+  workExperiences WorkExperience[]
+  educations      Education[]
+  skills          Skill[]
+  languages       Language[]
+  certifications  Certification[]
+  portfolios      Portfolio[]
 
   @@map("users")
 }
 
 model WorkExperience {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   userId      Int
   company     String
   role        String
@@ -36,64 +75,64 @@ model WorkExperience {
   startDate   DateTime
   endDate     DateTime?
   description String?
-
-  user User @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  
+  user        User      @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("work_experiences")
 }
 
 model Education {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   userId      Int
   institution String
   degree      String?
   startDate   DateTime?
   endDate     DateTime?
   description String?
-
-  user User @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  
+  user        User      @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("educations")
 }
 
 model Skill {
-  id        Int    @id @default(autoincrement())
-  userId    Int
-  name      String
-  level     Int?   // 0-100
-  notes     String?
-
-  user User @relation(fields: [userId], references: [id])
+  id      Int     @id @default(autoincrement())
+  userId  Int
+  name    String
+  level   Int?    // 0-100
+  notes   String?
+  
+  user    User    @relation(fields: [userId], references: [id])
 
   @@map("skills")
 }
 
 model Language {
-  id         Int    @id @default(autoincrement())
-  userId     Int
-  name       String
-  proficiency String? // e.g. "Native", "Fluent", "Intermediate"
-
-  user User @relation(fields: [userId], references: [id])
+  id           Int     @id @default(autoincrement())
+  userId       Int
+  name         String
+  proficiency  String?
+  
+  user         User    @relation(fields: [userId], references: [id])
 
   @@map("languages")
 }
 
 model Certification {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   userId    Int
   title     String
   issuer    String?
   issueDate DateTime?
   url       String?
-
-  user User @relation(fields: [userId], references: [id])
+  
+  user      User      @relation(fields: [userId], references: [id])
 
   @@map("certifications")
 }
@@ -109,24 +148,29 @@ model Portfolio {
   tags        String?
   featured    Boolean  @default(false)
   isDisabled  Boolean  @default(false)
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
+  
   workFor     Company? @relation("PortfolioWorkFor", fields: [workForId], references: [id])
   workAt      Company? @relation("PortfolioWorkAt", fields: [workAtId], references: [id])
+  
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@map("portfolios")
 }
 
 model Company {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  logoUrl   String?
-  website   String?
-  createdAt DateTime @default(now())
+  id                    Int         @id @default(autoincrement())
+  name                  String      @unique
+  logoUrl               String?
+  website               String?
+  createdAt             DateTime    @default(now())
+  
+  portfoliosAsClient    Portfolio[] @relation("PortfolioWorkFor")
+  portfoliosAsEmployer  Portfolio[] @relation("PortfolioWorkAt")
 
-  portfoliosAsClient Portfolio[] @relation("PortfolioWorkFor")
-  portfoliosAsEmployer Portfolio[] @relation("PortfolioWorkAt")
+  @@map("companies")
 }

@@ -2,7 +2,7 @@
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
-import UserTable from "./UserTable";
+import UserTable from "@/src/components/admin/users/UserTable";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Shield } from "lucide-react";

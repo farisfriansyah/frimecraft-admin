@@ -28,21 +28,29 @@ export default function UserTable({ users: initialUsers, roles }: UserTableProps
   const [users, setUsers] = useState(initialUsers);
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
-  // Fungsi pengubah Peran Pengguna
+  // Fungsi pengubah Peran Pengguna (Sudah Diperbaiki & Sinkron)
   const handleRoleChange = async (userId: number, roleId: number) => {
+    setLoadingId(userId);
     const result = await updateUserRole(userId, roleId);
-    if (!result.success) {
+    
+    if (result.success) {
+      // Perbarui state lokal agar data roleId terbaru terkunci di memori client
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.id === userId ? { ...u, roleId: roleId } : u))
+      );
+    } else {
+      // Jika gagal, dropdown otomatis kembali ke nilai semula karena menggunakan controlled 'value'
       alert(result.message);
     }
+    setLoadingId(null);
   };
 
-  // Fungsi pengubah Status Hack Akses Akun (Optimistic Update)
+  // Fungsi pengubah Status Hak Akses Akun
   const handleToggleStatus = async (userId: number, currentStatus: boolean) => {
     setLoadingId(userId);
     const result = await toggleUserStatus(userId, currentStatus);
     
     if (result.success) {
-      // Perbarui state lokal secara instan agar UI terasa cepat tanpa reload halaman
       setUsers((prevUsers) =>
         prevUsers.map((u) => (u.id === userId ? { ...u, isActive: !currentStatus } : u))
       );
@@ -74,12 +82,13 @@ export default function UserTable({ users: initialUsers, roles }: UserTableProps
                   <div className="text-xs text-muted-foreground">{user.email}</div>
                 </td>
                 
-                {/* Kolom Seleksi Peran */}
+                {/* Kolom Seleksi Peran (Controlled & Anti-Spam) */}
                 <td className="p-4">
                   <select
-                    defaultValue={user.roleId}
+                    value={user.roleId} // PERBAIKAN: Menggunakan 'value' agar tersinkronisasi penuh dengan state React
+                    disabled={loadingId === user.id} // Mengunci dropdown saat proses penyimpanan sedang berlangsung
                     onChange={(e) => handleRoleChange(user.id, Number(e.target.value))}
-                    className="bg-background border border-input text-foreground text-xs rounded-md p-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="bg-background border border-input text-foreground text-xs rounded-md p-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 transition-all"
                   >
                     {roles.map((role) => (
                       <option key={role.id} value={role.id} className="bg-background text-foreground">

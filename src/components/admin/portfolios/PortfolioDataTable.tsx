@@ -21,8 +21,6 @@ import {
   Edit,
   Trash2,
   ChevronDown,
-  Copy,
-  FileText,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -61,15 +59,23 @@ export type Portfolio = {
   tags: string | null;
 };
 
+// PERBAIKAN TIPE DATA: Daftarkan objek izin hak akses agar dikenali oleh TypeScript
 type Props = {
   data: Portfolio[];
+  permissions: {
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
 };
 
-export function PortfolioDataTable({ data }: Props) {
+export function PortfolioDataTable({ data, permissions }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+
+  // Membongkar kontrol izin hak akses
+  const { canUpdate, canDelete } = permissions;
 
   const columns: ColumnDef<Portfolio>[] = [
     {
@@ -190,6 +196,11 @@ export function PortfolioDataTable({ data }: Props) {
       cell: ({ row }) => {
         const portfolio = row.original;
 
+        // Jika pengguna sama sekali tidak punya izin Edit maupun Hapus, sembunyikan menu pemicu dropdown
+        if (!canUpdate && !canDelete) {
+          return <div className="text-center text-muted-foreground">-</div>;
+        }
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -200,29 +211,37 @@ export function PortfolioDataTable({ data }: Props) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/admin/portfolios/${portfolio.id}`} className="flex items-center gap-2 cursor-pointer">
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onSelect={async (e) => {
-                  e.preventDefault();
-                  if (confirm("Yakin ingin menghapus portfolio ini?")) {
-                    try {
-                      await deletePortfolioAction(String(portfolio.id));
-                      toast.success("Portfolio dihapus!");
-                    } catch {
-                      toast.error("Gagal menghapus portfolio");
+              
+              {/* IMPLEMENTASI RBAC: Tombol Edit hanya muncul jika diizinkan */}
+              {canUpdate && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/admin/portfolios/edit/${portfolio.id}`} className="flex items-center gap-2 cursor-pointer">
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              
+              {/* IMPLEMENTASI RBAC: Tombol Hapus hanya muncul jika diizinkan */}
+              {canDelete && (
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={async (e) => {
+                    e.preventDefault();
+                    if (confirm("Yakin ingin menghapus portfolio ini?")) {
+                      try {
+                        await deletePortfolioAction(String(portfolio.id));
+                        toast.success("Portfolio dihapus!");
+                      } catch {
+                        toast.error("Gagal menghapus portfolio");
+                      }
                     }
-                  }
-                }}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Hapus
-              </DropdownMenuItem>
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Hapus
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -249,34 +268,26 @@ export function PortfolioDataTable({ data }: Props) {
     },
   });
 
-  // Bulk Delete Action yang Sudah Diperbaiki
   const handleBulkDelete = async () => {
-    // 1. Ambil baris data yang sedang dicentang secara akurat dari model tabel
     const selectedRows = table.getFilteredSelectedRowModel().rows;
-    
-    // 2. Map ke ID database asli (portfolio.id) bukan indeks baris visual
     const selectedIds = selectedRows.map(row => row.original.id);
     
     if (selectedIds.length === 0) return toast.error("Pilih minimal satu portfolio");
-
     if (!confirm(`Hapus ${selectedIds.length} portfolio yang dipilih beserta file gambarnya?`)) return;
 
     try {
-      // 3. Eksekusi semua proses hapus ke server secara paralel
       const results = await Promise.all(
-        selectedIds.map(id => deletePortfolioAction(id))
+        selectedIds.map(id => deletePortfolioAction(String(id)))
       );
 
-      // 4. Periksa apakah ada baris yang gagal dihapus di sisi server
       const failedDelete = results.find(res => res && !res.success);
       if (failedDelete) {
         toast.error(failedDelete.error || "Gagal menghapus beberapa portfolio");
         return;
       }
 
-      // Sukses total
       toast.success(`${selectedIds.length} portfolio berhasil dihapus secara permanen!`);
-      table.resetRowSelection(); // Bersihkan tanda centang di tabel
+      table.resetRowSelection();
       
     } catch (error) {
       console.error("Bulk delete error:", error);
@@ -296,8 +307,8 @@ export function PortfolioDataTable({ data }: Props) {
         />
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Bulk Actions */}
-          {table.getFilteredSelectedRowModel().rows.length > 0 && (
+          {/* IMPLEMENTASI RBAC: Fitur Massal (Bulk Delete) hanya muncul jika canDelete aktif */}
+          {canDelete && table.getFilteredSelectedRowModel().rows.length > 0 && (
             <Button
               variant="destructive"
               size="sm"

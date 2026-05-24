@@ -2,7 +2,7 @@
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
-import RolePermissionsGrid from "./RolePermissionsGrid";
+import RolePermissionsGrid from "@/src/components/admin/roles/RolePermissionsGrid"; // PERBAIKAN: Impor lurus ke folder components yang valid
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Users } from "lucide-react";

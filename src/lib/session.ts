@@ -2,23 +2,25 @@
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 
-// Pastikan SECRET ada, jika tidak, aplikasi akan error di production (seharusnya begitu agar aman)
-const SECRET = process.env.SESSION_SECRET;
-if (!SECRET && process.env.NODE_ENV === 'production') {
+// Keamanan: Validasi secret di awal
+const SECRET_KEY = process.env.SESSION_SECRET;
+if (!SECRET_KEY && process.env.NODE_ENV === 'production') {
   throw new Error('FATAL: SESSION_SECRET must be set in production!');
 }
 
-const secret = new TextEncoder().encode(SECRET ?? 'dev-secret-key-yang-sangat-panjang-dan-unik');
+const secret = new TextEncoder().encode(SECRET_KEY ?? 'dev-secret-key-yang-sangat-panjang-dan-unik');
 
-// CREATE SESSION (LOGIN)
-export async function createSession(userId: number) {
-  // Waktu kadaluarsa 7 hari
+/**
+ * Membuat sesi dengan payload userId dan role.
+ * Role disimpan di JWT untuk efisiensi pengecekan akses (RBAC).
+ */
+export async function createSession(userId: number, role: string) {
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  const token = await new SignJWT({ userId })
+  const token = await new SignJWT({ userId, role })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('7d') // 'jose' bisa menerima string '7d' langsung, lebih rapi
+    .setExpirationTime('7d')
     .sign(secret);
 
   const cookieStore = await cookies();
@@ -31,7 +33,9 @@ export async function createSession(userId: number) {
   });
 }
 
-// src/lib/session.ts (Update di bagian getSession)
+/**
+ * Mendapatkan session yang sudah terverifikasi beserta role-nya.
+ */
 export async function getSession() {
   try {
     const cookieStore = await cookies();
@@ -41,17 +45,22 @@ export async function getSession() {
 
     const { payload } = await jwtVerify(token, secret);
     
-    // VALIDASI TAMBAHAN: Pastikan userId ada dan berupa angka yang valid (> 0)
+    // Validasi data payload
     const userId = Number(payload.userId);
-    if (!userId || isNaN(userId)) return null;
+    const role = payload.role as string;
 
-    return { userId };
+    if (!userId || isNaN(userId) || !role) return null;
+
+    return { userId, role };
   } catch (err) {
+    // Token tidak valid atau kadaluarsa
     return null;
   }
 }
 
-// LOGOUT
+/**
+ * Menghapus sesi dengan menghapus cookie dari browser.
+ */
 export async function destroySession() {
   const cookieStore = await cookies();
   cookieStore.delete('session');

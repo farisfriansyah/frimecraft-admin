@@ -3,7 +3,7 @@
 
 import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
-import { hasPermission } from "@/src/lib/rbac"; // <-- KUNCI UTAMA: Impor helper validasi hak akses
+import { hasPermission } from "@/src/lib/rbac";
 import { revalidatePath } from "next/cache";
 import { writeFile, mkdir } from "fs/promises";
 import fs from "fs/promises"; 
@@ -24,10 +24,10 @@ export async function createPortfolioAction(formData: FormData) {
   const session = await getSession();
   if (!session?.userId) throw new Error("Unauthorized");
 
-  // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.create' sebelum memproses data
+  // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.create'
   const canCreate = await hasPermission(session.userId, "portfolio.create");
   if (!canCreate) {
-    throw new Error("Akses ditolak! Peran Anda tidak memiliki izin untuk membuat portfolio baru.");
+    throw new Error("Akses ditolak! Anda tidak memiliki izin untuk membuat portfolio.");
   }
 
   const imageFile = formData.get("image") as File | null;
@@ -40,16 +40,14 @@ export async function createPortfolioAction(formData: FormData) {
     const filename = `${Date.now()}-${imageFile.name.replace(/\s+/g, "-")}`;
     const filepath = path.join(process.cwd(), "public", "uploads", "portfolio", filename);
 
-    // AUTO BUAT FOLDER KALAU BELUM ADA!
     await ensureDirectoryExists(filepath);
-
     await writeFile(filepath, buffer);
     imageUrl = `/uploads/portfolio/${filename}`;
   }
 
   const newPortfolio = await db.portfolio.create({
     data: {
-      userId: session.userId,
+      userId: session.userId, // Tetap simpan siapa yang membuat, tapi jangan jadikan filter akses
       title: formData.get("title") as string,
       description: (formData.get("description") as string) || null,
       imageUrl,
@@ -62,7 +60,6 @@ export async function createPortfolioAction(formData: FormData) {
     },
   });
 
-  // Revalidasi menyeluruh untuk menghancurkan router cache di client browser
   revalidatePath("/admin/portfolios");
   revalidatePath("/portfolios");
   return newPortfolio;
@@ -73,10 +70,10 @@ export async function updatePortfolioAction(id: number, formData: FormData) {
   const session = await getSession();
   if (!session?.userId) throw new Error("Unauthorized");
 
-  // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.update' sebelum mengubah data
+  // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.update'
   const canUpdate = await hasPermission(session.userId, "portfolio.update");
   if (!canUpdate) {
-    throw new Error("Akses ditolak! Peran Anda tidak memiliki izin untuk memperbarui portfolio.");
+    throw new Error("Akses ditolak! Anda tidak memiliki izin untuk memperbarui portfolio.");
   }
 
   const imageFile = formData.get("image") as File | null;
@@ -88,9 +85,7 @@ export async function updatePortfolioAction(id: number, formData: FormData) {
     const filename = `${Date.now()}-${imageFile.name.replace(/\s+/g, "-")}`;
     const filepath = path.join(process.cwd(), "public", "uploads", "portfolio", filename);
 
-    // AUTO CREATE FOLDER
     await ensureDirectoryExists(filepath);
-
     await writeFile(filepath, buffer);
     imageUrl = `/uploads/portfolio/${filename}`;
   }
@@ -110,7 +105,6 @@ export async function updatePortfolioAction(id: number, formData: FormData) {
     },
   });
 
-  // Revalidasi menyeluruh untuk menghancurkan router cache di client browser
   revalidatePath("/admin/portfolios");
   revalidatePath("/portfolios");
   return updatedPortfolio;
@@ -123,9 +117,8 @@ async function deletePhysicalFile(imageUrl: string | null) {
     const filePath = path.join(process.cwd(), "public", imageUrl);
     await fs.access(filePath).catch(() => null); 
     await fs.unlink(filePath);
-    console.log(`✓ Berhasil menghapus file gambar fisik: ${filePath}`);
   } catch (err) {
-    console.error("⚠ Gagal menghapus gambar fisik (file kemungkinan tidak ada):", err);
+    console.error("⚠ Gagal menghapus gambar fisik:", err);
   }
 }
 
@@ -137,10 +130,10 @@ export async function deletePortfolioAction(id: string | number) {
       return { success: false, error: "Unauthorized" };
     }
 
-    // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.delete' sebelum melakukan query hapus
+    // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.delete'
     const canDelete = await hasPermission(session.userId, "portfolio.delete");
     if (!canDelete) {
-      return { success: false, error: "Akses ditolak! Peran Anda tidak memiliki izin untuk menghapus portfolio." };
+      return { success: false, error: "Akses ditolak! Anda tidak memiliki izin menghapus." };
     }
 
     const portfolioId = Number(id);
@@ -148,17 +141,14 @@ export async function deletePortfolioAction(id: string | number) {
       return { success: false, error: "ID Portfolio tidak valid." };
     }
 
+    // Ambil data hanya untuk kebutuhan hapus file gambar
     const portfolio = await db.portfolio.findUnique({
       where: { id: portfolioId },
-      select: { imageUrl: true, userId: true }
+      select: { imageUrl: true } // Tidak perlu lagi cek userId di sini
     });
 
     if (!portfolio) {
       return { success: false, error: `Portfolio dengan ID ${portfolioId} tidak ditemukan.` };
-    }
-
-    if (portfolio.userId !== session.userId) {
-      return { success: false, error: "Akses ditolak. Anda bukan pemilik portfolio ini." };
     }
 
     if (portfolio.imageUrl) {

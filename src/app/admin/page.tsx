@@ -1,58 +1,54 @@
 // src/app/admin/page.tsx
-import { db } from "@/src/lib/prisma";                    // BENAR
-import { getSession } from "@/src/lib/session";              // BENAR
+import { db } from "@/src/lib/prisma";
+import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
-
-import {
-  Briefcase,
-  Wrench,
-  Calendar,
-  Award,
-  Plus,
-} from "lucide-react";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Briefcase, Wrench, Calendar, Award, Plus } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
-import type { Portfolio } from "@prisma/client";
 
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session?.userId) redirect("/login");
 
+  // const [portfolios, skillCount, workCount, certCount] = await Promise.all([
+  //   db.portfolio.findMany({
+  //     where: { userId: session.userId },
+  //     orderBy: { createdAt: "desc" },
+  //     take: 8,
+  //   }),
+  //   db.skill.count({ where: { userId: session.userId } }),
+  //   db.workExperience.count({ where: { userId: session.userId } }),
+  //   db.certification.count({ where: { userId: session.userId } }),
+  // ]);
+
+  // HAPUS Filter userId agar semua admin melihat data website secara utuh
   const [portfolios, skillCount, workCount, certCount] = await Promise.all([
     db.portfolio.findMany({
-      where: { userId: session.userId },
       orderBy: { createdAt: "desc" },
       take: 8,
     }),
-    db.skill.count({ where: { userId: session.userId } }),
-    db.workExperience.count({ where: { userId: session.userId } }),
-    db.certification.count({ where: { userId: session.userId } }),
+    db.skill.count(),           // Global count
+    db.workExperience.count(),  // Global count
+    db.certification.count(),   // Global count
   ]);
 
   const featuredCount = portfolios.filter(p => p.featured).length;
 
   const stats = [
-    { title: "Portfolios", value: portfolios.length, icon: Briefcase, desc: `${featuredCount} featured` },
-    { title: "Skills", value: skillCount, icon: Wrench, desc: "Dikuasai" },
-    { title: "Work Experience", value: workCount, icon: Calendar, desc: "Perusahaan" },
-    { title: "Certifications", value: certCount, icon: Award, desc: "Terverifikasi" },
+    { title: "Total Portfolios", value: portfolios.length, icon: Briefcase, desc: `${featuredCount} featured` },
+    { title: "Total Skills", value: skillCount, icon: Wrench, desc: "Total Skill tersimpan" },
+    { title: "Work Experience", value: workCount, icon: Calendar, desc: "Total entri pengalaman" },
+    { title: "Certifications", value: certCount, icon: Award, desc: "Total sertifikasi" },
   ];
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-bold tracking-tight">Selamat datang kembali!</h1>
-        <p className="text-muted-foreground mt-2">Ini ringkasan portfolio dan aktivitas kamu</p>
+        <p className="text-muted-foreground mt-2">Ringkasan seluruh aktivitas administrasi website.</p>
       </div>
 
       {/* Stats */}
@@ -78,7 +74,7 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Recent Portfolios</CardTitle>
-                <CardDescription>Project terbaru kamu</CardDescription>
+                <CardDescription>Portofolio terbaru dari seluruh tim</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/admin/portfolios">Lihat semua</Link>
@@ -93,7 +89,7 @@ export default async function DashboardPage() {
                 {portfolios.slice(0, 5).map((portfolio) => (
                   <Link
                     key={portfolio.id}
-                    href={`/admin/portfolios/${portfolio.id}`}
+                    href={`/admin/portfolios/edit/${portfolio.id}`}
                     className="flex items-center gap-4 hover:bg-muted/50 p-3 -m-3 rounded-lg transition"
                   >
                     {portfolio.imageUrl ? (
@@ -102,7 +98,7 @@ export default async function DashboardPage() {
                         alt={portfolio.title}
                         width={80}
                         height={60}
-                        className="rounded-md object-cover"
+                        className="rounded-md object-cover h-16 w-20"
                       />
                     ) : (
                       <div className="bg-muted border-2 border-dashed rounded-md w-20 h-16" />
@@ -127,7 +123,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Akses cepat</CardDescription>
+            <CardDescription>Akses cepat manajemen data</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             <Button asChild>

@@ -44,7 +44,11 @@ export async function POST(request: Request) {
 
     // 6. BUAT SESI menggunakan mekanisme JOSE (JWT) yang aman
     // Ini menggantikan response.cookies.set() yang tidak aman sebelumnya
-    await createSession(user.id);
+    // Pastikan user.role.name tidak undefined dengan memberikan fallback "USER"
+    const userRole = user.role?.name || "USER"; 
+    
+    // PERBAIKAN: Kirimkan userRole sebagai argumen kedua
+    await createSession(user.id, userRole);
 
     return NextResponse.json({
       success: true,

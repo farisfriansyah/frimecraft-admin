@@ -1,4 +1,3 @@
-// src/actions/auth-actions.ts
 "use server";
 
 import { db } from "@/src/lib/prisma";
@@ -8,7 +7,7 @@ import { revalidatePath } from "next/cache";
 
 /**
  * LOGIN ACTION
- * Menangani proses otentikasi, pembuatan sesi, dan update waktu login.
+ * Menggunakan Server Action untuk keamanan maksimal (built-in CSRF protection).
  */
 export async function loginAction(formData: FormData) {
   try {
@@ -19,8 +18,7 @@ export async function loginAction(formData: FormData) {
       return { success: false, message: "Email dan password wajib diisi!" };
     }
 
-    // 1. Verifikasi kredensial menggunakan helper verifyLogin
-    // Fungsi ini sudah mengecek user ada, password benar, status aktif, dan role admin
+    // 1. Verifikasi kredensial
     const user = await verifyLogin(email, password);
 
     if (!user) {
@@ -30,45 +28,41 @@ export async function loginAction(formData: FormData) {
       };
     }
 
-    // 2. Hancurkan sesi lama (jika ada) sebelum membuat sesi baru
-    // Ini krusial untuk mencegah akun tertukar
+    // 2. Hancurkan sesi lama
     await destroySession();
 
-    // 3. Buat sesi baru (JWT di dalam cookie)
-    await createSession(user.id);
+    // 3. Buat sesi baru DENGAN ROLE
+    // Pastikan user.role.name tersedia di objek user hasil verifyLogin
+    const role = (user.role as any)?.name || "USER";
+    await createSession(user.id, role);
 
-    // 4. Update riwayat waktu login terakhir pengguna ke database PostgreSQL
+    // 4. Update waktu login
     await db.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() }
     });
 
-    // Bersihkan cache router agar data sesi baru terbaca instan di seluruh layout /admin
     revalidatePath("/admin", "layout");
 
-    return { success: true, message: "Login berhasil, mengalihkan halaman..." };
+    return { success: true, message: "Login berhasil." };
 
   } catch (error) {
-    console.error("[Fatal Login Action Error]:", error);
-    return { success: false, message: "Terjadi kesalahan internal pada server." };
+    console.error("[Login Action Error]:", error);
+    return { success: false, message: "Terjadi kesalahan server." };
   }
 }
 
 /**
  * LOGOUT ACTION
- * Menghapus cookie sesi secara total.
  */
 export async function logoutAction() {
   try {
-    // Menghapus cookie 'session' dari browser user
     await destroySession();
-
-    // Bersihkan cache router untuk memastikan redirect aman
-    revalidatePath("/admin", "layout");
-    
-    return { success: true, message: "Anda telah keluar dari sistem." };
+    // Redirect ke root atau login setelah logout dilakukan di sisi klien
+    revalidatePath("/", "layout");
+    return { success: true, message: "Logout berhasil." };
   } catch (error) {
     console.error("[Logout Action Error]:", error);
-    return { success: false, message: "Gagal menghapus sesi login." };
+    return { success: false, message: "Gagal memproses logout." };
   }
 }

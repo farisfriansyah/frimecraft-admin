@@ -6,6 +6,7 @@ import { hasPermission } from "@/src/lib/rbac";
 import { updateUserAction, changeUserPasswordAction, deleteUserAction } from "@/src/actions/user-actions";
 import Link from "next/link";
 import { KeyRound, UserRoundX, Settings2 } from "lucide-react";
+import { DeleteButton } from "@/src/components/admin/common/DeleteButton"; // Import komponen baru
 
 interface EditProps {
   params: Promise<{ id: string }>;
@@ -30,7 +31,6 @@ export default async function EditUserPage({ params }: EditProps) {
 
   const roles = await db.role.findMany({ orderBy: { id: "asc" } });
 
-  // Server Actions Wrapper
   async function handleInfoSubmit(formData: FormData) {
     "use server";
     const result = await updateUserAction(userId, formData);
@@ -59,7 +59,6 @@ export default async function EditUserPage({ params }: EditProps) {
         <Link href="/admin/users" className="text-sm font-medium text-muted-foreground hover:text-foreground"> Kembali </Link>
       </div>
 
-      {/* BLOK 1: EDIT INFORMASI UTAMA & ROLE */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm text-card-foreground space-y-4">
         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Ubah Data Informasi Profil</h4>
         <form action={handleInfoSubmit} className="space-y-4">
@@ -87,22 +86,20 @@ export default async function EditUserPage({ params }: EditProps) {
         </form>
       </div>
 
-      {/* BLOK 2: GANTI PASSWORD PAKSA */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm text-card-foreground space-y-4">
         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
           <KeyRound className="h-4 w-4 text-amber-500" /> Pengaturan Ulang Kata Sandi
         </h4>
         <form action={handlePasswordSubmit} className="flex gap-2 items-end">
           <div className="space-y-1.5 flex-1">
-            <input type="password" name="newPassword" placeholder="Masukkan password baru akun ini..." className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required />
+            <input type="password" name="newPassword" placeholder="Masukkan password baru..." className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required />
           </div>
-          <button type="submit" className="inline-flex items-center justify-center h-10 px-4 text-xs font-medium border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-md hover:bg-amber-500/20 transition-colors">
+          <button type="submit" className="inline-flex items-center justify-center h-10 px-4 text-xs font-medium border border-amber-500/30 bg-amber-500/10 text-amber-600 rounded-md hover:bg-amber-500/20 transition-colors">
             Terapkan Password
           </button>
         </form>
       </div>
 
-      {/* BLOK 3: DANGER ZONE (HAPUS PERMANEN) */}
       {canDelete && userId !== session.userId && (
         <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 shadow-sm space-y-4">
           <h4 className="text-xs font-bold text-destructive uppercase tracking-wider flex items-center gap-1.5">
@@ -110,13 +107,10 @@ export default async function EditUserPage({ params }: EditProps) {
           </h4>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">
-              Menghapus user akan mencabut semua hak miliknya dan menghapusnya secara permanen dari database sistem. Tindakan ini tidak dapat dibatalkan.
+              Menghapus user akan mencabut semua hak miliknya dan menghapusnya secara permanen.
             </p>
-            <form action={handleDeleteSubmit} onSubmit={(e) => { if(!confirm("Yakin ingin menghapus permanen akun ini?")) e.preventDefault(); }}>
-              <button type="submit" className="inline-flex items-center justify-center h-10 px-4 text-xs font-medium bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 shadow">
-                Hapus User
-              </button>
-            </form>
+            {/* Panggil komponen DeleteButton disini */}
+            <DeleteButton action={handleDeleteSubmit} />
           </div>
         </div>
       )}

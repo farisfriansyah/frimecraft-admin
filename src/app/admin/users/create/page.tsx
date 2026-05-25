@@ -26,7 +26,7 @@ export default async function CreateUserPage() {
   }
 
   return (
-    <div className="container max-w-xl py-10 space-y-6">
+    <div className="space-y-10">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Tambah Pengguna Baru</h1>
         <p className="text-sm text-muted-foreground">Daftarkan akun administrator baru ke dalam sistem</p>

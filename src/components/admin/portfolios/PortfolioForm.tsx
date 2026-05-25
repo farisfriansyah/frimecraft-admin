@@ -129,7 +129,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
       </div>
 
       {/* Main Content */}
-      <div className="container py-10">
+      <div className="py-10">
         <form onSubmit={handleSubmit((data) => onSubmit(data, false))} className="grid gap-10 lg:grid-cols-12">
           {/* Left Column - Form Fields */}
           <div className="space-y-8 lg:col-span-8">

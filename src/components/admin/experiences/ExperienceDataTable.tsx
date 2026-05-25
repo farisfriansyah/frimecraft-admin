@@ -160,7 +160,7 @@ export function ExperienceDataTable({ data, permissions }: Props) {
               <DropdownMenuLabel>Aksi</DropdownMenuLabel>
               {canUpdate && (
                 <DropdownMenuItem asChild>
-                  <Link href={`/admin/experiences/${exp.id}`} className="flex items-center gap-2 cursor-pointer">
+                  <Link href={`/admin/experiences/edit/${exp.id}`} className="flex items-center gap-2 cursor-pointer">
                     <Edit className="h-4 w-4" /> Edit
                   </Link>
                 </DropdownMenuItem>

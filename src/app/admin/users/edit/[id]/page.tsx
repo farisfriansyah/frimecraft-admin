@@ -50,7 +50,7 @@ export default async function EditUserPage({ params }: EditProps) {
   }
 
   return (
-    <div className="container max-w-xl py-10 space-y-8">
+    <div className="space-y-10">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings2 className="h-6 w-6 text-primary" />

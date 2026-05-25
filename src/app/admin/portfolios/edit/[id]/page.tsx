@@ -49,7 +49,7 @@ export default async function EditPortfolioPage({ params }: EditProps) {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PortfolioForm
         portfolio={portfolio}
         companies={companies}

@@ -2,6 +2,7 @@
 
 import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
+import { hasPermission } from "@/src/lib/rbac";
 import { revalidatePath } from "next/cache";
 
 export async function createEducationAction(formData: FormData) {
@@ -62,7 +63,7 @@ export async function deleteEducationAction(id: number) {
   if (!session?.userId) return { success: false, error: "Unauthorized" };
 
   // Proteksi RBAC: Pastikan user punya hak akses
-  const canManage = await hasPermission(session.userId, "experience.manage");
+  const canManage = await hasPermission(session.userId, "education.manage");
   if (!canManage) return { success: false, error: "Akses ditolak" };
 
   try {

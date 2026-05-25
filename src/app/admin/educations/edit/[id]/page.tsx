@@ -42,7 +42,7 @@ export default async function EditEducationPage({ params }: EditProps) {
   if (!education) notFound();
 
   return (
-    <div className="container py-10 max-w-7xl">
+    <div className="py-10">
       <EducationForm 
         education={education} 
         mode="edit" 

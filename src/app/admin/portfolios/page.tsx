@@ -31,7 +31,7 @@ export default async function PortfoliosPage() {
   return (
 
 
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div>
         <h1 className="text-4xl font-bold tracking-tight">Portfolios</h1>
         <p className="text-muted-foreground mt-2">Kelola semua project portfolio kamu</p>

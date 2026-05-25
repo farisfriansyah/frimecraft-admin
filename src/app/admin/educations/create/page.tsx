@@ -22,7 +22,7 @@ export default async function CreateEducationPage() {
 
   // 3. Render Form
   return (
-    <div className="container py-10 max-w-7xl">
+    <div className="py-10">
       <EducationForm mode="create" />
     </div>
   );

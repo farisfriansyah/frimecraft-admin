@@ -14,7 +14,7 @@ export default async function CreateExperiencePage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <ExperienceForm companies={companies} mode="create" />
     </div>
   );

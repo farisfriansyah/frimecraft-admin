@@ -120,7 +120,7 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
   };
 
   return (
-    <div className="container py-10 max-w-7xl">
+    <div className="py-10">
       <form onSubmit={handleSubmit(onSubmit)} className="grid gap-10 lg:grid-cols-12">
         <div className="space-y-8 lg:col-span-8">
           <div className="flex items-center gap-4">

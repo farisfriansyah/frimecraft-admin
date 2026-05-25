@@ -23,7 +23,7 @@ export default async function CreatePortfolioPage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PortfolioForm companies={companies} mode="create" />
     </div>
   );

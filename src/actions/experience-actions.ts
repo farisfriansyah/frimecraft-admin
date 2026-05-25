@@ -3,112 +3,106 @@
 
 import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
+import { hasPermission } from "@/src/lib/rbac";
 import { revalidatePath } from "next/cache";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 
-// === HELPER: Pastikan folder ada ===
-async function ensureDirectoryExists(filePath: string) {
-  const dir = path.dirname(filePath);
-  try {
-    await mkdir(dir, { recursive: true });
-  } catch (error: any) {
-    if (error.code !== "EEXIST") throw error;
-  }
-}
-
-// === CREATE Experience ===
+// === CREATE EXPERIENCE ===
 export async function createExperienceAction(formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) throw new Error("Unauthorized");
+  try {
+    const session = await getSession();
+    if (!session?.userId) return { success: false, error: "Unauthorized" };
 
-  const imageFile = formData.get("image") as File | null;
+    // Proteksi RBAC
+    const canCreate = await hasPermission(session.userId, "experience.create");
+    if (!canCreate) return { success: false, error: "Akses ditolak! Anda tidak memiliki izin." };
 
-  let imageUrl: string | null = null;
-  if (imageFile && imageFile.size > 0) {
-    const bytes = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const isCurrent = formData.get("isCurrent") === "true";
 
-    const filename = `${Date.now()}-${imageFile.name.replace(/\s+/g, "-")}`;
-    const filepath = path.join(process.cwd(), "public", "uploads", "experience", filename);
-
-    // INI YANG PENTING: AUTO BUAT FOLDER KALAU BELUM ADA!
-    await ensureDirectoryExists(filepath);
-
-    await writeFile(filepath, buffer);
-    imageUrl = `/uploads/experience/${filename}`;
-  }
-
-  const newExperience = await db.workExperience.create({
-    data: {
+    const data = {
       userId: session.userId,
-      title: formData.get("title") as string,
+      position: formData.get("position") as string,
+      companyId: formData.get("companyId") ? Number(formData.get("companyId")) : null,
+      location: (formData.get("location") as string) || null,
+      startMonth: Number(formData.get("startMonth")),
+      startYear: Number(formData.get("startYear")),
+      // LOGIKA AMAN: Jika kosong/null, kembalikan null, bukan 0
+      endMonth: isCurrent || !formData.get("endMonth") ? null : Number(formData.get("endMonth")),
+      endYear: isCurrent || !formData.get("endYear") ? null : Number(formData.get("endYear")),
+      isCurrent,
       description: (formData.get("description") as string) || null,
-      imageUrl,
-      projectUrl: (formData.get("projectUrl") as string) || null,
-      workForId: formData.get("workForId") ? Number(formData.get("workForId")) : null,
-      workAtId: formData.get("workAtId") ? Number(formData.get("workAtId")) : null,
-      tags: (formData.get("tags") as string) || null,
-      featured: formData.get("featured") === "true",
-      isDisabled: formData.get("isDisabled") === "true",
-    },
-  });
+      tags: (formData.get("tags") as string)?.split(",").map(t => t.trim()).filter(Boolean) || [],
+    };
 
-  revalidatePath("/experiences");
-  return newExperience;
-}
+    await db.workExperience.create({ data });
 
-// === UPDATE PORTFOLIO ===
-export async function updateExperienceAction(id: number, formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) throw new Error("Unauthorized");
-
-  const imageFile = formData.get("image") as File | null;
-
-  let imageUrl: string | undefined = undefined;
-  if (imageFile && imageFile.size > 0) {
-    const bytes = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const filename = `${Date.now()}-${imageFile.name.replace(/\s+/g, "-")}`;
-    const filepath = path.join(process.cwd(), "public", "uploads", "experience", filename);
-
-    // AUTO CREATE FOLDER
-    await ensureDirectoryExists(filepath);
-
-    await writeFile(filepath, buffer);
-    imageUrl = `/uploads/experience/${filename}`;
+    revalidatePath("/admin/experiences");
+    revalidatePath("/experiences"); // Sesuaikan jika ada route publik
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal membuat experience:", error);
+    return { success: false, error: "Gagal menyimpan ke database." };
   }
-
-  const updatedExperience = await db.workExperience.update({
-    where: { id },
-    data: {
-      title: formData.get("title") as string,
-      description: (formData.get("description") as string) || null,
-      imageUrl: imageUrl ?? undefined,
-      projectUrl: (formData.get("projectUrl") as string) || null,
-      workForId: formData.get("workForId") ? Number(formData.get("workForId")) : null,
-      workAtId: formData.get("workAtId") ? Number(formData.get("workAtId")) : null,
-      tags: (formData.get("tags") as string) || null,
-      featured: formData.get("featured") === "true",
-      isDisabled: formData.get("isDisabled") === "true",
-    },
-  });
-
-  revalidatePath("/experiences");
-  return updatedExperience;
 }
 
-// TAMBAHKAN INI — DELETE PORTFOLIO ACTION!
-export async function deleteExperienceAction(id: number) {
-  const session = await getSession();
-  if (!session?.userId) throw new Error("Unauthorized");
+// === UPDATE EXPERIENCE ===
+export async function updateExperienceAction(id: number, formData: FormData) {
+  try {
+    const session = await getSession();
+    if (!session?.userId) return { success: false, error: "Unauthorized" };
 
-  await db.workExperience.delete({
-    where: { 
-      id,
-      userId: session.userId 
-    },
-  });
+    // Proteksi RBAC
+    const canUpdate = await hasPermission(session.userId, "experience.update");
+    if (!canUpdate) return { success: false, error: "Akses ditolak! Anda tidak memiliki izin." };
 
-  revalidatePath("/admin/experiences");
+    const isCurrent = formData.get("isCurrent") === "true";
+
+    await db.workExperience.update({
+      where: { id },
+      data: {
+        position: formData.get("position") as string,
+        companyId: formData.get("companyId") ? Number(formData.get("companyId")) : null,
+        location: (formData.get("location") as string) || null,
+        startMonth: Number(formData.get("startMonth")),
+        startYear: Number(formData.get("startYear")),
+        endMonth: isCurrent ? null : Number(formData.get("endMonth")),
+        endYear: isCurrent ? null : Number(formData.get("endYear")),
+        isCurrent,
+        description: (formData.get("description") as string) || null,
+        tags: (formData.get("tags") as string)?.split(",").map(t => t.trim()).filter(Boolean) || [],
+      },
+    });
+
+    revalidatePath("/admin/experiences");
+    revalidatePath("/experiences");
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal update experience:", error);
+    return { success: false, error: "Gagal memperbarui data." };
+  }
+}
+
+// === DELETE EXPERIENCE ===
+export async function deleteExperienceAction(id: number | string) {
+  try {
+    const session = await getSession();
+    if (!session?.userId) return { success: false, error: "Unauthorized" };
+
+    // Proteksi RBAC
+    const canDelete = await hasPermission(session.userId, "experience.delete");
+    if (!canDelete) return { success: false, error: "Akses ditolak!" };
+
+    const experienceId = Number(id);
+    if (isNaN(experienceId)) return { success: false, error: "ID tidak valid" };
+
+    await db.workExperience.delete({
+      where: { id: experienceId },
+    });
+
+    revalidatePath("/admin/experiences");
+    revalidatePath("/experiences");
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal menghapus experience:", error);
+    return { success: false, error: "Gagal menghapus data." };
+  }
 }

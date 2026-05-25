@@ -29,29 +29,29 @@ export default async function PortfoliosPage() {
   });
 
   return (
-    <div className="container space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Portfolios</h1>
-          <p className="text-muted-foreground">Kelola semua project portfolio kamu</p>
-        </div>
-        
-        {/* HANYA MUNCUL JIKA USER MEMILIKI IZIN portfolio.create ATAU all */}
-        {canCreate && (
-          <Button asChild size="lg">
-            {/* PASTIKAN: Alamat href ini sama persis dengan lokasi folder fisik file create kamu */}
-            <Link href="/admin/portfolios/create">
-              <Plus className="mr-2 h-5 w-5" />
-              Tambah Portfolio
-            </Link>
-          </Button>
-        )}
+
+
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold tracking-tight">Portfolios</h1>
+        <p className="text-muted-foreground mt-2">Kelola semua project portfolio kamu</p>
       </div>
 
+      {/* HANYA MUNCUL JIKA USER MEMILIKI IZIN portfolio.create ATAU all */}
+      {canCreate && (
+        <Button asChild size="lg">
+          {/* PASTIKAN: Alamat href ini sama persis dengan lokasi folder fisik file create kamu */}
+          <Link href="/admin/portfolios/create">
+            <Plus className="mr-2 h-5 w-5" />
+            Tambah Portfolio
+          </Link>
+        </Button>
+      )}
+
       {/* Oper data izin ke tabel agar tombol Edit/Delete menyesuaikan */}
-      <PortfolioDataTable 
-        data={portfolios} 
-        permissions={{ canUpdate, canDelete }} 
+      <PortfolioDataTable
+        data={portfolios}
+        permissions={{ canUpdate, canDelete }}
       />
     </div>
   );

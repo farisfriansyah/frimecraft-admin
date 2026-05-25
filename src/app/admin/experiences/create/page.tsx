@@ -1,10 +1,9 @@
-// src/app/portfolios/create/page.tsx
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
-import PortfolioForm from "@/src/components/admin/experiences/ExperienceForm";
+import ExperienceForm  from "@/src/components/admin/experiences/ExperienceForm";
 
-export const metadata = { title: "Tambah Portfolio • Admin" };
+export const metadata = { title: "Tambah Experience • Admin" };
 
 export default async function CreateExperiencePage() {
   const session = await getSession();
@@ -14,5 +13,9 @@ export default async function CreateExperiencePage() {
     orderBy: { name: "asc" },
   });
 
-  return <ExperienceForm companies={companies} mode="create" />;
+  return (
+    <div className="space-y-8">
+      <ExperienceForm companies={companies} mode="create" />
+    </div>
+  );
 }

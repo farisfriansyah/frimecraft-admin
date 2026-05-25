@@ -22,5 +22,9 @@ export default async function CreatePortfolioPage() {
     orderBy: { name: "asc" },
   });
 
-  return <PortfolioForm companies={companies} mode="create" />;
+  return (
+    <div className="space-y-8">
+      <PortfolioForm companies={companies} mode="create" />
+    </div>
+  );
 }

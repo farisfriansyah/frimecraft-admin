@@ -41,7 +41,7 @@ async function main() {
   // 2) SEED ROLES & ASSIGN PERMISSIONS
   // ==========================================
   console.log("├─ Seeding roles...");
-  
+
   const allPermission = await prisma.permission.findUnique({
     where: { name: "all" },
   });
@@ -85,7 +85,7 @@ async function main() {
       isActive: true,
     },
   });
-  
+
   console.log(`│  ✓ Admin account secured: ${adminEmail}`);
 
   const userId = admin.id;
@@ -94,25 +94,48 @@ async function main() {
   // 4) SEED WORK EXPERIENCES
   // ==========================================
   const weCount = await prisma.workExperience.count({ where: { userId } });
+
   if (weCount === 0) {
+    // 1. Pastikan Perusahaan ada di database agar kita punya ID-nya
+    const studio = await prisma.company.upsert({
+      where: { name: "Frime Craft Studio" },
+      update: {},
+      create: { name: "Frime Craft Studio", website: "https://frimecraft.com" }
+    });
+
+    const startup = await prisma.company.upsert({
+      where: { name: "StartupX" },
+      update: {},
+      create: { name: "StartupX", website: "https://startupx.com" }
+    });
+
+    // 2. Insert Data dengan skema baru
     await prisma.workExperience.createMany({
       data: [
         {
           userId,
-          company: "Frime Craft Studio",
-          role: "Lead UX/UI Designer",
+          companyId: studio.id,
+          position: "Lead UX/UI Designer",
           location: "Jakarta, Indonesia",
-          startDate: new Date("2020-01-01"),
-          endDate: null,
+          startMonth: 1,
+          startYear: 2020,
+          isCurrent: true,
+          endMonth: null,
+          endYear: null,
+          tags: ["UX", "UI", "Figma"],
           description: "Mendesain produk SaaS, dashboard, dan landing pages untuk klien enterprise."
         },
         {
           userId,
-          company: "StartupX",
-          role: "Product Designer",
+          companyId: startup.id,
+          position: "Product Designer",
           location: "Remote",
-          startDate: new Date("2018-05-01"),
-          endDate: new Date("2019-12-31"),
+          startMonth: 5,
+          startYear: 2018,
+          isCurrent: false,
+          endMonth: 12,
+          endYear: 2019,
+          tags: ["Product", "Design"],
           description: "Membentuk alur pengguna, prototyping, dan desain visual."
         }
       ],

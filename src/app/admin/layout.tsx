@@ -33,9 +33,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex bg-background">
       <AdminSidebar />
-      <div className="flex flex-col flex-1 overflow-y-auto">
+      <div className="flex flex-col flex-1">
         {/* Navbar menerima currentUser sebagai prop */}
         <AdminNavbar currentUser={currentUser} />
         <main className="p-6">{children}</main>

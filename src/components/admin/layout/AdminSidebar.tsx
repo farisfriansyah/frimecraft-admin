@@ -23,8 +23,8 @@ import { useState } from "react";
 const navItems = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/portfolios", label: "Portfolios", icon: Briefcase },
-  { href: "/admin/works", label: "Work Experience", icon: Briefcase },
-  { href: "/admin/education", label: "Education", icon: GraduationCap },
+  { href: "/admin/experiences", label: "Work Experience", icon: Briefcase },
+  { href: "/admin/educations", label: "Education", icon: GraduationCap },
   { href: "/admin/skills", label: "Skills", icon: Wrench },
   { href: "/admin/languages", label: "Languages", icon: Languages },
   { href: "/admin/users", label: "Users", icon: User },

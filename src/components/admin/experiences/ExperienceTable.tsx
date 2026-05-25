@@ -1,4 +1,3 @@
-// src/components/admin/experiences/ExperienceTable.tsx
 "use client";
 
 import * as React from "react";
@@ -47,28 +46,37 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { deleteExperienceAction } from "@/src/actions/experience-actions";
 
+// Tipe data disesuaikan dengan skema WorkExperience
 export type Experience = {
   id: number;
-  title: string;
-  imageUrl?: string | null;
-  featured: boolean;
-  isDisabled: boolean;
+  position: string;
+  company: { name: string } | null;
+  startMonth: number;
+  startYear: number;
+  endMonth: number | null;
+  endYear: number | null;
+  isCurrent: boolean;
+  tags: string[];
   createdAt: Date;
 };
 
 type Props = {
-  initialData: Experience[];
+  data: Experience[];
+  permissions: {
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
 };
 
-export default function ExperienceTable({ initialData }: Props) {
+export default function ExperienceTable({ data, permissions }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-    createdAt: false, // Sembunyikan di mobile
-  });
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const columns: ColumnDef<Experience>[] = [
+  const { canUpdate, canDelete } = permissions;
+
+  const columns: ColumnDef<Experience>[] = React.useMemo(() => [
     {
       id: "select",
       header: ({ table }) => (
@@ -89,66 +97,50 @@ export default function ExperienceTable({ initialData }: Props) {
       enableHiding: false,
     },
     {
-      accessorKey: "title",
+      accessorKey: "position",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-8 px-0 font-medium"
-        >
-          Judul
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Posisi <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3 min-w-0">
-          {row.original.imageUrl ? (
-            <img
-              src={row.original.imageUrl}
-              alt={row.original.title}
-              className="h-10 w-10 rounded-md object-cover flex-shrink-0"
-            />
-          ) : (
-            <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-muted-foreground">?</span>
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="font-medium truncate">{row.getValue("title")}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {new Date(row.original.createdAt).toLocaleDateString("id-ID")}
-            </div>
-          </div>
-        </div>
-      ),
+      cell: ({ row }) => <div className="font-medium">{row.original.position}</div>,
     },
     {
-      accessorKey: "featured",
-      header: "Status",
+      accessorKey: "company.name",
+      header: "Perusahaan",
+      cell: ({ row }) => <div>{row.original.company?.name || "-"}</div>,
+    },
+    {
+      header: "Periode",
       cell: ({ row }) => {
-        const { featured, isDisabled } = row.original;
-        return (
-          <div className="flex flex-wrap gap-1">
-            {featured && <Badge variant="default" className="text-xs">Featured</Badge>}
-            {isDisabled && <Badge variant="secondary" className="text-xs">Nonaktif</Badge>}
-            {!featured && !isDisabled && <Badge variant="outline" className="text-xs">Normal</Badge>}
-          </div>
-        );
+        const { startMonth, startYear, endMonth, endYear, isCurrent } = row.original;
+        const start = `${startMonth}/${startYear}`;
+        const end = isCurrent ? "Sekarang" : `${endMonth}/${endYear}`;
+        return <div className="text-sm">{start} - {end}</div>;
       },
     },
     {
-      accessorKey: "createdAt",
-      header: "Dibuat",
+      accessorKey: "tags",
+      header: "Tags",
       cell: ({ row }) => {
-        const date = new Date(row.getValue("createdAt"));
-        return <div className="text-sm text-muted-foreground">{date.toLocaleDateString("id-ID")}</div>;
+        const tags = row.original.tags;
+        if (!tags || tags.length === 0) return <span className="text-muted-foreground text-xs">-</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {tags.slice(0, 2).map((tag, i) => (
+              <Badge key={i} variant="secondary" className="text-xs">{tag}</Badge>
+            ))}
+            {tags.length > 2 && <Badge variant="outline" className="text-xs">+{tags.length - 2}</Badge>}
+          </div>
+        );
       },
     },
     {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const experience = row.original;
+        const exp = row.original;
+        if (!canUpdate && !canDelete) return <div className="text-center text-muted-foreground">-</div>;
 
         return (
           <DropdownMenu>
@@ -159,38 +151,40 @@ export default function ExperienceTable({ initialData }: Props) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-              <DropdownMenuItem asChild>
-                <Link href={`/admin/experiences/${experience.id}`} className="flex items-center gap-2">
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                onSelect={async (e) => {
-                  e.preventDefault();
-                  if (confirm("Yakin hapus pengalaman kerja ini?")) {
-                    try {
-                      await deleteExperienceAction(experience.id);
-                      toast.success("Pengalaman Kerja dihapus!");
-                    } catch {
-                      toast.error("Gagal menghapus");
+              {canUpdate && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/admin/experiences/${exp.id}`} className="flex items-center gap-2">
+                    <Edit className="h-4 w-4" /> Edit
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {canDelete && (
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={async (e) => {
+                    e.preventDefault();
+                    if (confirm("Yakin hapus pengalaman kerja ini?")) {
+                      try {
+                        await deleteExperienceAction(exp.id);
+                        toast.success("Berhasil dihapus!");
+                      } catch {
+                        toast.error("Gagal menghapus");
+                      }
                     }
-                  }
-                }}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Hapus
-              </DropdownMenuItem>
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Hapus
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
       },
     },
-  ];
+  ], [canUpdate, canDelete]);
 
   const table = useReactTable({
-    data: initialData,
+    data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -200,57 +194,45 @@ export default function ExperienceTable({ initialData }: Props) {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-    initialState: {
-      pagination: { pageSize: 10 },
-    },
+    state: { sorting, columnFilters, columnVisibility, rowSelection },
   });
 
-  // Bulk Delete
   const handleBulkDelete = async () => {
-    const selectedIds = Object.keys(rowSelection).map(Number);
-    if (selectedIds.length === 0) return toast.error("Pilih minimal satu pengalaman kerja");
+    const selectedIds = table.getFilteredSelectedRowModel().rows.map(r => r.original.id);
+    if (selectedIds.length === 0) return toast.error("Pilih minimal satu data");
 
-    if (!confirm(`Hapus ${selectedIds.length} experience?`)) return;
+    if (!confirm(`Hapus ${selectedIds.length} data?`)) return;
 
     try {
       await Promise.all(selectedIds.map(id => deleteExperienceAction(id)));
-      toast.success(`${selectedIds.length} Pengalaman kerja dihapus!`);
+      toast.success("Berhasil dihapus!");
       table.resetRowSelection();
     } catch {
-      toast.error("Gagal menghapus beberapa pengalaman kerja");
+      toast.error("Gagal hapus massal");
     }
   };
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <Input
-          placeholder="Cari judul..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(e) => table.getColumn("title")?.setFilterValue(e.target.value)}
+          placeholder="Cari posisi..."
+          value={(table.getColumn("position")?.getFilterValue() as string) ?? ""}
+          onChange={(e) => table.getColumn("position")?.setFilterValue(e.target.value)}
           className="w-full sm:max-w-sm"
         />
 
         <div className="flex items-center gap-2">
-          {table.getFilteredSelectedRowModel().rows.length > 0 && (
+          {canDelete && table.getFilteredSelectedRowModel().rows.length > 0 && (
             <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Hapus ({table.getFilteredSelectedRowModel().rows.length})
+              <Trash2 className="h-4 w-4 mr-2" /> Hapus ({table.getFilteredSelectedRowModel().rows.length})
             </Button>
           )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                Kolom
-                <ChevronDown className="ml-2 h-4 w-4" />
+                Kolom <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -260,7 +242,7 @@ export default function ExperienceTable({ initialData }: Props) {
                   checked={column.getIsVisible()}
                   onCheckedChange={(v) => column.toggleVisibility(!!v)}
                 >
-                  {column.id === "createdAt" ? "Tanggal Dibuat" : column.id}
+                  {column.id === "company.name" ? "Perusahaan" : column.id}
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
@@ -268,74 +250,34 @@ export default function ExperienceTable({ initialData }: Props) {
         </div>
       </div>
 
-      {/* Responsive Table */}
-      <div className="rounded-md border overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map(headerGroup => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <TableHead key={header.id} className="whitespace-nowrap">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map(hg => (
+              <TableRow key={hg.id}>
+                {hg.headers.map(h => <TableHead key={h.id}>{flexRender(h.column.columnDef.header, h.getContext())}</TableHead>)}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map(row => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map(cell => <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>)}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map(row => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={row.getIsSelected() ? "bg-muted/50" : ""}
-                  >
-                    {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id} className="py-3">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
-                    Belum ada pengalaman kerja
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            ) : (
+              <TableRow><TableCell colSpan={columns.length} className="text-center h-24">Tidak ada data.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
-      {/* Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-        <div>
-          {table.getFilteredSelectedRowModel().rows.length > 0
-            ? `${table.getFilteredSelectedRowModel().rows.length} dari ${table.getFilteredRowModel().rows.length} dipilih`
-            : `${table.getFilteredRowModel().rows.length} total pengalaman kerja`}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div>{table.getFilteredSelectedRowModel().rows.length} dipilih</div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</Button>
+          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Next</Button>
         </div>
       </div>
     </div>

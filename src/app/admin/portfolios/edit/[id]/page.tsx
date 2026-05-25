@@ -49,19 +49,12 @@ export default async function EditPortfolioPage({ params }: EditProps) {
   });
 
   return (
-    <div className="container max-w-3xl py-10 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Edit Portfolio</h1>
-        <p className="text-sm text-muted-foreground mt-1.5">
-          Perbarui informasi proyek portfolio kamu, termasuk judul, deskripsi, gambar, dan detail perusahaan terkait.
-        </p>
-      </div>
-
+    <div className="space-y-8">
       <PortfolioForm
         portfolio={portfolio}
         companies={companies}
         mode="edit"
       />
-    </div>
+      </div>
   );
 }

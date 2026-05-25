@@ -41,27 +41,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Education } from "@prisma/client";
+import { Skill } from "@prisma/client";
 import Link from "next/link";
 import { toast } from "sonner";
-import { deleteEducationAction } from "@/src/actions/education-actions";
-
-// Helper untuk format tanggal agar tidak Hydration Error
-const formatDate = (date: Date | string | null) => {
-  if (!date) return "Sekarang";
-  const d = new Date(date);
-  const day = d.getDate().toString().padStart(2, '0');
-  const month = (d.getMonth() + 1).toString().padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
-};
+import { deleteSkillAction } from "@/src/actions/skill-actions";
 
 type Props = {
-  data: Education[];
+  data: Skill[];
   permissions: { canUpdate: boolean; canDelete: boolean };
 };
 
-export function EducationDataTable({ data, permissions }: Props) {
+export function SkillDataTable({ data, permissions }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -69,7 +59,7 @@ export function EducationDataTable({ data, permissions }: Props) {
 
   const { canUpdate, canDelete } = permissions;
 
-  const columns: ColumnDef<Education>[] = React.useMemo(() => [
+  const columns: ColumnDef<Skill>[] = React.useMemo(() => [
     {
       id: "select",
       header: ({ table }) => (
@@ -90,31 +80,28 @@ export function EducationDataTable({ data, permissions }: Props) {
       enableHiding: false,
     },
     {
-      accessorKey: "institution",
+      accessorKey: "name",
       header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0">
-          Institusi <ArrowUpDown className="ml-2 h-4 w-4" />
+          Nama Skill <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div className="font-medium">{row.original.institution}</div>,
+      cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
     },
     {
-      accessorKey: "degree",
-      header: "Gelar",
-      cell: ({ row }) => <div>{row.original.degree || "-"}</div>,
-    },
-    {
-      header: "Periode",
-      cell: ({ row }) => (
-        <div className="text-sm">
-          {formatDate(row.original.startDate)} - {formatDate(row.original.endDate)}
-        </div>
+      accessorKey: "level",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0">
+          Level <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
       ),
+      cell: ({ row }) => <div>{row.original.level}%</div>,
     },
     {
       id: "actions",
+      enableHiding: false,
       cell: ({ row }) => {
-        const edu = row.original;
+        const skill = row.original;
         if (!canUpdate && !canDelete) return null;
 
         return (
@@ -128,7 +115,7 @@ export function EducationDataTable({ data, permissions }: Props) {
               <DropdownMenuLabel>Aksi</DropdownMenuLabel>
               {canUpdate && (
                 <DropdownMenuItem asChild>
-                  <Link href={`/admin/educations/edit/${edu.id}`} className="flex items-center gap-2 cursor-pointer">
+                  <Link href={`/admin/skills/edit/${skill.id}`} className="flex items-center gap-2 cursor-pointer">
                     <Edit className="h-4 w-4" /> Edit
                   </Link>
                 </DropdownMenuItem>
@@ -138,8 +125,8 @@ export function EducationDataTable({ data, permissions }: Props) {
                   className="text-destructive focus:text-destructive"
                   onSelect={async (e) => {
                     e.preventDefault();
-                    if (confirm("Yakin ingin menghapus data ini?")) {
-                      const res = await deleteEducationAction(edu.id);
+                    if (confirm("Yakin ingin menghapus skill ini?")) {
+                      const res = await deleteSkillAction(skill.id);
                       if (res.success) toast.success("Berhasil dihapus!");
                       else toast.error(res.error || "Gagal menghapus");
                     }
@@ -172,10 +159,10 @@ export function EducationDataTable({ data, permissions }: Props) {
   const handleBulkDelete = async () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     if (selectedRows.length === 0) return toast.error("Pilih data dulu");
-    if (!confirm(`Hapus ${selectedRows.length} data terpilih?`)) return;
+    if (!confirm(`Hapus ${selectedRows.length} skill terpilih?`)) return;
 
     try {
-      await Promise.all(selectedRows.map(row => deleteEducationAction(row.original.id)));
+      await Promise.all(selectedRows.map(row => deleteSkillAction(row.original.id)));
       toast.success("Berhasil dihapus!");
       table.resetRowSelection();
     } catch {
@@ -187,9 +174,9 @@ export function EducationDataTable({ data, permissions }: Props) {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <Input
-          placeholder="Cari institusi..."
-          value={(table.getColumn("institution")?.getFilterValue() as string) ?? ""}
-          onChange={(e) => table.getColumn("institution")?.setFilterValue(e.target.value)}
+          placeholder="Cari skill..."
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          onChange={(e) => table.getColumn("name")?.setFilterValue(e.target.value)}
           className="w-full sm:max-w-sm"
         />
         <div className="flex items-center gap-2">
@@ -211,7 +198,7 @@ export function EducationDataTable({ data, permissions }: Props) {
                   checked={column.getIsVisible()}
                   onCheckedChange={(v) => column.toggleVisibility(!!v)}
                 >
-                  {column.id === "institution" ? "Institusi" : column.id}
+                  {column.id === "name" ? "Nama Skill" : column.id}
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>

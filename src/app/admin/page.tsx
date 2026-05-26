@@ -139,7 +139,7 @@ export default async function DashboardPage() {
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/admin/works" className="flex items-center justify-center gap-3">
+              <Link href="/admin/experiences" className="flex items-center justify-center gap-3">
                 <Briefcase className="h-4 w-4" />
                 Work Experience
               </Link>

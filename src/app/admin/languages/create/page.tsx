@@ -24,7 +24,7 @@ export default async function CreateLanguagePage() {
   }
 
   return (
-    <div className="container py-10 max-w-7xl">
+    <div className="py-10">
       <LanguageForm mode="create" />
     </div>
   );

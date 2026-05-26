@@ -1,22 +1,21 @@
-// src/app/admin/skills/page.tsx
+// src/app/admin/certifications/page.tsx
+import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
-import { db } from "@/src/lib/prisma";
 import { hasPermission } from "@/src/lib/rbac";
-import { SkillDataTable } from "@/src/components/admin/skills/SkillDataTable";
+import { CertificationDataTable } from "@/src/components/admin/certifications/CertificationDataTable";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 export const metadata = {
-  title: "Skills • Admin",
-  description: "Kelola daftar keahlian teknis",
+  title: "Sertifikasi • Admin",
+  description: "Kelola daftar sertifikasi profesional",
 };
 
-// Memastikan halaman selalu mengambil data terbaru dari database
 export const dynamic = "force-dynamic";
 
-export default async function SkillsPage() {
+export default async function CertificationsPage() {
   const session = await getSession();
   if (!session?.userId) redirect("/login");
 
@@ -27,34 +26,33 @@ export default async function SkillsPage() {
     hasPermission(session.userId, "experience.manage"),
   ]);
 
-  const skills = await db.skill.findMany({
-    // where: { userId: session.userId },
-    orderBy: { name: "asc" },
+  const data = await db.certification.findMany({
+    orderBy: { issueDate: "desc" },
   });
 
   return (
     <div className="space-y-8">
       {/* Header Section */}
       <div>
-        <h1 className="text-4xl font-bold tracking-tight">Skills</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Sertifikasi</h1>
         <p className="text-muted-foreground mt-2">
-          Kelola daftar keahlian teknis Anda
+          Kelola daftar sertifikasi profesional Anda
         </p>
       </div>
 
-      {/* Tombol Tambah (Hanya muncul jika diizinkan) */}
+      {/* Tombol Tambah (Conditional Rendering) */}
       {canCreate && (
         <Button asChild size="lg">
-          <Link href="/admin/skills/create">
+          <Link href="/admin/certifications/create">
             <Plus className="mr-2 h-5 w-5" />
-            Tambah Skill
+            Tambah Sertifikat
           </Link>
         </Button>
       )}
 
-      {/* DataTable */}
-      <SkillDataTable 
-        data={skills} 
+      {/* Data Table */}
+      <CertificationDataTable 
+        data={data} 
         permissions={{ canUpdate, canDelete }} 
       />
     </div>

@@ -129,3 +129,30 @@ export async function deleteUserAction(userId: number) {
     return { success: false, message: "Gagal menghapus user dari database." };
   }
 }
+
+// === 5. TOGGLE USER STATUS (AKTIF/NONAKTIF) ===
+export async function toggleUserStatusAction(userId: number, currentStatus: boolean) {
+  try {
+    const session = await getSession();
+    if (!session?.userId) return { success: false, message: "Sesi kedaluwarsa." };
+
+    const canUpdate = await hasPermission(session.userId, "user.update");
+    if (!canUpdate) return { success: false, message: "Akses ditolak." };
+
+    // Mencegah admin menonaktifkan diri sendiri
+    if (session.userId === userId) {
+      return { success: false, message: "Anda tidak bisa mengubah status akun Anda sendiri." };
+    }
+
+    await db.user.update({
+      where: { id: userId },
+      data: { isActive: !currentStatus },
+    });
+
+    revalidatePath("/admin/users");
+    return { success: true, message: "Status akun berhasil diperbarui." };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Gagal mengubah status user." };
+  }
+}

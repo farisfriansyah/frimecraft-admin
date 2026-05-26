@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
@@ -9,9 +9,11 @@ import { Education } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import RichTextEditor from "../portfolios/RichTextEditor"; // Sesuaikan path
+import RichTextEditor from "../portfolios/RichTextEditor";
 import { createEducationAction, updateEducationAction } from "@/src/actions/education-actions";
 
 const schema = z.object({
@@ -19,7 +21,16 @@ const schema = z.object({
   degree: z.string().nullable().optional(),
   startDate: z.string().min(1, "Tanggal mulai wajib diisi"),
   endDate: z.string().nullable().optional(),
+  isCurrent: z.boolean().default(false),
   description: z.string().nullable().optional(),
+}).refine((data) => {
+  if (!data.isCurrent && data.endDate && data.startDate) {
+    return new Date(data.endDate) >= new Date(data.startDate);
+  }
+  return true;
+}, {
+  message: "Tanggal selesai tidak boleh sebelum tanggal mulai",
+  path: ["endDate"],
 });
 
 type EducationFormValues = z.infer<typeof schema>;
@@ -28,23 +39,29 @@ export default function EducationForm({ education, mode }: { education?: Educati
   const router = useRouter();
   const isEdit = mode === "edit";
 
-  const form = useForm<EducationFormValues>({
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<EducationFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: education ? {
-      institution: education.institution,
-      degree: education.degree || "",
-      description: education.description || "",
-      startDate: education.startDate ? new Date(education.startDate).toISOString().split('T')[0] : "",
-      endDate: education.endDate ? new Date(education.endDate).toISOString().split('T')[0] : "",
-    } : {
-      institution: "",
-      degree: "",
-      description: "",
-      startDate: new Date().toISOString().split('T')[0],
+    defaultValues: {
+      institution: education?.institution || "",
+      degree: education?.degree || "",
+      description: education?.description || "",
+      startDate: education?.startDate ? new Date(education.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      endDate: education?.endDate ? new Date(education.endDate).toISOString().split('T')[0] : "",
+      isCurrent: education ? !education.endDate : false,
     },
   });
 
-  const onSubmit = async (data: EducationFormValues) => {
+  const isCurrent = watch("isCurrent");
+
+  // Fix: Explicit SubmitHandler typing
+  const onSubmit: SubmitHandler<EducationFormValues> = async (data) => {
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
@@ -70,9 +87,8 @@ export default function EducationForm({ education, mode }: { education?: Educati
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-10 lg:grid-cols-12">
-      <div className="space-y-8 lg:col-span-8">
-        {/* Header */}
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-10 lg:grid-cols-12">
+      <div className="space-y-6 lg:col-span-8">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/admin/educations"><ArrowLeft className="h-5 w-5" /></Link>
@@ -80,46 +96,68 @@ export default function EducationForm({ education, mode }: { education?: Educati
           <h1 className="text-2xl font-bold">{isEdit ? "Edit" : "Tambah"} Pendidikan</h1>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Institusi <span className="text-destructive">*</span></Label>
-            <Input {...form.register("institution")} />
-            {form.formState.errors.institution && (
-              <p className="text-sm text-destructive">{form.formState.errors.institution.message}</p>
-            )}
+        <Card className="p-6 space-y-6">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Institusi <span className="text-destructive">*</span></Label>
+              <Input {...register("institution")} placeholder="Contoh: Universitas Indonesia" />
+              {errors.institution && <p className="text-sm text-destructive">{errors.institution.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Gelar</Label>
+              <Input {...register("degree")} placeholder="Contoh: S.Kom" />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>Gelar</Label>
-            <Input {...form.register("degree")} />
-          </div>
-        </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Tanggal Mulai</Label>
-            <Input type="date" {...form.register("startDate")} />
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Tanggal Mulai</Label>
+              <Input type="date" {...register("startDate")} />
+              {errors.startDate && <p className="text-sm text-destructive">{errors.startDate.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Tanggal Selesai</Label>
+              <Input type="date" {...register("endDate")} disabled={isCurrent} />
+              <div className="flex items-center space-x-2 mt-2">
+                <Controller
+                  control={control}
+                  name="isCurrent"
+                  render={({ field }) => (
+                    <Checkbox
+                      id="isCurrent"
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        if (checked) setValue("endDate", "");
+                      }}
+                    />
+                  )}
+                />
+                <Label htmlFor="isCurrent" className="font-normal cursor-pointer">
+                  Saat ini sedang menempuh pendidikan
+                </Label>
+              </div>
+              {errors.endDate && <p className="text-sm text-destructive">{errors.endDate.message}</p>}
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>Tanggal Selesai</Label>
-            <Input type="date" {...form.register("endDate")} />
-          </div>
-        </div>
+        </Card>
 
         <div className="space-y-2">
           <Label>Deskripsi</Label>
-          {/* Menggunakan RichTextEditor agar konsisten dengan Portfolio */}
-          <RichTextEditor 
-            value={form.watch("description") || ""} 
-            onChange={(v) => form.setValue("description", v)} 
+          <Controller
+            control={control}
+            name="description"
+            render={({ field }) => (
+              <RichTextEditor value={field.value || ""} onChange={field.onChange} />
+            )}
           />
         </div>
       </div>
 
-      {/* Sticky Sidebar */}
       <div className="lg:col-span-4">
         <div className="sticky top-20 space-y-3 rounded-lg border bg-card p-6 shadow-sm">
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Menyimpan..." : "Simpan Pendidikan"}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Menyimpan..." : "Simpan Pendidikan"}
           </Button>
           <Button variant="ghost" asChild className="w-full">
             <Link href="/admin/educations">Batal</Link>

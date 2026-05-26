@@ -27,6 +27,7 @@ export default async function CertificationsPage() {
   ]);
 
   const data = await db.certification.findMany({
+    // where: { userId: session.userId },
     orderBy: { issueDate: "desc" },
   });
 

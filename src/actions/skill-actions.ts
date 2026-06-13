@@ -17,8 +17,13 @@ export async function createSkillAction(formData: FormData) {
       data: {
         userId: session.userId,
         name: formData.get("name") as string,
+        slug: (formData.get("slug") as string) || null,
         level: Number(formData.get("level")),
         notes: (formData.get("notes") as string) || null,
+        seoTitle: (formData.get("seoTitle") as string) || null,
+        seoDescription: (formData.get("seoDescription") as string) || null,
+        keywords: (formData.get("keywords") as string) || null,
+        tags: (formData.get("tags") as string) || null,
       },
     });
     revalidatePath("/admin/skills");
@@ -37,8 +42,13 @@ export async function updateSkillAction(id: number, formData: FormData) {
       where: { id, userId: session.userId },
       data: {
         name: formData.get("name") as string,
+        slug: (formData.get("slug") as string) || null,
         level: Number(formData.get("level")),
         notes: (formData.get("notes") as string) || null,
+        seoTitle: (formData.get("seoTitle") as string) || null,
+        seoDescription: (formData.get("seoDescription") as string) || null,
+        keywords: (formData.get("keywords") as string) || null,
+        tags: (formData.get("tags") as string) || null,
       },
     });
     revalidatePath("/admin/skills");

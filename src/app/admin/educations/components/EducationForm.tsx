@@ -25,6 +25,11 @@ type EducationRecord = {
   endDate?: Date | null;
   description?: string | null;
   isCurrent?: boolean;
+  slug?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  keywords?: string | null;
+  tags?: string | null;
 };
 
 const schema = z.object({
@@ -34,6 +39,11 @@ const schema = z.object({
   endDate: z.string().nullable().optional(),
   isCurrent: z.boolean().default(false),
   description: z.string().nullable().optional(),
+  slug: z.string().nullable().optional(),
+  seoTitle: z.string().max(60, "Maksimal 60 karakter untuk SEO").nullable().optional(),
+  seoDescription: z.string().max(160, "Maksimal 160 karakter untuk SEO").nullable().optional(),
+  keywords: z.string().max(300, "Maksimal 300 karakter").nullable().optional(),
+  tags: z.array(z.string()).nullable().optional(),
 }).refine((data) => {
   if (!data.isCurrent && data.endDate && data.startDate) {
     return new Date(data.endDate) >= new Date(data.startDate);
@@ -45,6 +55,15 @@ const schema = z.object({
 });
 
 type EducationFormValues = Omit<z.infer<typeof schema>, 'isCurrent'> & { isCurrent?: boolean };
+
+function generateSlugFromTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-]/g, "")
+    .replace(/\-+/g, "-");
+}
 
 export default function EducationForm({ education, mode }: { education?: EducationRecord; mode: "create" | "edit" }) {
   const router = useRouter();
@@ -58,7 +77,7 @@ export default function EducationForm({ education, mode }: { education?: Educati
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<EducationFormValues>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema),
     defaultValues: {
       institution: education?.institution || "",
       degree: education?.degree || "",
@@ -66,17 +85,30 @@ export default function EducationForm({ education, mode }: { education?: Educati
       startDate: education?.startDate ? new Date(education.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       endDate: education?.endDate ? new Date(education.endDate).toISOString().split('T')[0] : "",
       isCurrent: education ? !education.endDate : false,
+      slug: education?.slug || "",
+      seoTitle: education?.seoTitle || "",
+      seoDescription: education?.seoDescription || "",
+      keywords: education?.keywords || "",
+      tags: education?.tags ? education.tags.split(",").map((t) => t.trim()) : [],
     },
   });
 
   const isCurrent = watch("isCurrent");
+  const slugValue = watch("slug");
+  const seoTitleLength = watch("seoTitle")?.length || 0;
+  const seoDescriptionLength = watch("seoDescription")?.length || 0;
+  const keywordsLength = watch("keywords")?.length || 0;
 
   const onSubmit = async (data: EducationFormValues, saveAndAddAnother = false) => {
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          formData.append(key, String(value));
+          if (Array.isArray(value)) {
+            formData.append(key, value.join(","));
+          } else {
+            formData.append(key, String(value));
+          }
         }
       });
 
@@ -96,7 +128,7 @@ export default function EducationForm({ education, mode }: { education?: Educati
       } else {
         toast.error(res.error || "Gagal menyimpan data");
       }
-    } catch (error) {
+    } catch {
       toast.error("Terjadi kesalahan sistem");
     }
   };
@@ -119,7 +151,16 @@ export default function EducationForm({ education, mode }: { education?: Educati
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 col-span-2">
               <Label>Institusi <span className="text-destructive">*</span></Label>
-              <Input {...register("institution")} placeholder="Contoh: Universitas Indonesia" />
+              <Input 
+                {...register("institution")} 
+                placeholder="Contoh: Universitas Indonesia"
+                onChange={(e) => {
+                  register("institution").onChange?.(e);
+                  if (!slugValue) {
+                    setValue("slug", generateSlugFromTitle(e.target.value));
+                  }
+                }}
+              />
               {errors.institution && <p className="text-sm text-destructive">{errors.institution.message}</p>}
             </div>
             <div className="space-y-2 col-span-2">
@@ -170,6 +211,70 @@ export default function EducationForm({ education, mode }: { education?: Educati
             )}
           />
         </div>
+
+        {/* Card 3: SEO Fields */}
+        <Card>
+          <CardHeader>
+            <CardTitle>SEO & Meta Tags</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug (URL-friendly)</Label>
+              <Input 
+                id="slug"
+                {...register("slug")} 
+                placeholder="slug-institusi"
+                className="font-mono"
+                onChange={(e) => {
+                  register("slug").onChange?.(e);
+                }}
+              />
+              <p className="text-xs text-muted-foreground">Auto-generated dari institusi, tapi bisa diedit</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="seoTitle">SEO Title</Label>
+              <Input 
+                id="seoTitle"
+                {...register("seoTitle")} 
+                placeholder="Judul untuk search engines (max 60 char)"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{seoTitleLength}/60 karakter</span>
+                <span>{seoTitleLength > 60 ? "❌ Terlalu panjang" : "✅"}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="seoDescription">Meta Description</Label>
+              <textarea 
+                id="seoDescription"
+                {...register("seoDescription")} 
+                placeholder="Deskripsi untuk preview di search engines (max 160 char)"
+                rows={2}
+                className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{seoDescriptionLength}/160 karakter</span>
+                <span>{seoDescriptionLength > 160 ? "❌ Terlalu panjang" : "✅"}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="keywords">Keywords / Kata Kunci</Label>
+              <textarea 
+                id="keywords"
+                {...register("keywords")} 
+                placeholder="Kata kunci yang relevan, pisahkan dengan koma (max 300 char)"
+                rows={2}
+                className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{keywordsLength}/300 karakter</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Sidebar Aksi */}

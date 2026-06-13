@@ -3,7 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { db } from "@/src/lib/prisma";
 import { hasPermission } from "@/src/lib/rbac";
 import { deleteUserAction } from "@/src/actions/user-actions";
-import UserForm from "@/src/components/admin/users/UserForm";
+import UserForm from "@/src/app/admin/users/components/UserForm";
 
 export const metadata = { title: "Edit Pengguna • Admin" };
 

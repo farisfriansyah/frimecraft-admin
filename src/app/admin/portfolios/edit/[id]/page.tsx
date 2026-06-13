@@ -3,7 +3,7 @@ import { getSession } from "@/src/lib/session";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/src/lib/prisma";
 import { hasPermission } from "@/src/lib/rbac"; // <-- Wajib Impor Helper RBAC
-import PortfolioForm from "@/src/components/admin/portfolios/PortfolioForm";
+import PortfolioForm from "@/src/app/admin/portfolios/components/PortfolioForm";
 
 export const metadata = { title: "Edit Portfolio • Admin" };
 

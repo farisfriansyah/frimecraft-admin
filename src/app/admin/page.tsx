@@ -3,9 +3,9 @@ import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { Briefcase, Wrench, Calendar, Award, Plus } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/app/ui/card";
+import { Button } from "@/src/app/ui/button";
+import { Badge } from "@/src/app/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
 

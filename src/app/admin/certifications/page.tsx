@@ -3,8 +3,8 @@ import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/src/lib/rbac";
-import { CertificationDataTable } from "@/src/components/admin/certifications/CertificationDataTable";
-import { Button } from "@/components/ui/button";
+import { CertificationDataTable } from "@/src/app/admin/certifications/components/CertificationDataTable";
+import { Button } from "@/src/app/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 

@@ -2,7 +2,7 @@
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/src/lib/rbac";
-import LanguageForm from "@/src/components/admin/languages/LanguageForm";
+import LanguageForm from "@/src/app/admin/languages/components/LanguageForm";
 
 // Jaminan data selalu fresh
 export const dynamic = "force-dynamic";

@@ -2,7 +2,7 @@
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/src/lib/rbac";
-import CertificationForm from "@/src/components/admin/certifications/CertificationForm";
+import CertificationForm from "@/src/app/admin/certifications/components/CertificationForm";
 
 // Jaminan data selalu fresh dan tidak ter-cache saat build
 export const dynamic = "force-dynamic";

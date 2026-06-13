@@ -2,8 +2,8 @@
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
-import AdminNavbar from "@/src/components/admin/layout/AdminNavbar";
-import AdminSidebar from "@/src/components/admin/layout/AdminSidebar";
+import AdminNavbar from "@/src/app/admin/layout/AdminNavbar";
+import AdminSidebar from "@/src/app/admin/layout/AdminSidebar";
 
 export const dynamic = "force-dynamic";
 

@@ -3,7 +3,7 @@ import { getSession } from "@/src/lib/session";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/src/lib/prisma";
 import { hasPermission } from "@/src/lib/rbac";
-import EducationForm from "@/src/components/admin/educations/EducationForm";
+import EducationForm from "@/src/app/admin/educations/components/EducationForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit Education • Admin" };

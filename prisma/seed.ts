@@ -1,9 +1,11 @@
 // prisma/seed.ts
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
+import pkg from '@prisma/client';
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import bcrypt from "bcryptjs";
+
+const { PrismaClient } = pkg;
 
 // Menginisialisasi driver koneksi PostgreSQL murni sesuai standar baru Prisma v7
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });

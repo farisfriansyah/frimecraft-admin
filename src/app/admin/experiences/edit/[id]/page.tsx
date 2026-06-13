@@ -2,7 +2,7 @@
 import { getSession } from "@/src/lib/session";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/src/lib/prisma";
-import ExperienceForm from "@/src/components/admin/experiences/ExperienceForm";
+import ExperienceForm from "@/src/app/admin/experiences/components/ExperienceForm";
 
 export const metadata = { title: "Edit Experience • Admin" };
 

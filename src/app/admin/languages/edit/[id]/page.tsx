@@ -3,7 +3,7 @@ import { getSession } from "@/src/lib/session";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/src/lib/prisma";
 import { hasPermission } from "@/src/lib/rbac";
-import LanguageForm from "@/src/components/admin/languages/LanguageForm";
+import LanguageForm from "@/src/app/admin/languages/components/LanguageForm";
 
 // Jaminan data selalu fresh (anti-cache) untuk halaman admin
 export const dynamic = "force-dynamic"; 

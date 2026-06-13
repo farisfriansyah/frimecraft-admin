@@ -3,7 +3,7 @@ import { getSession } from "@/src/lib/session";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/src/lib/prisma";
 import { hasPermission } from "@/src/lib/rbac";
-import CertificationForm from "@/src/components/admin/certifications/CertificationForm";
+import CertificationForm from "@/src/app/admin/certifications/components/CertificationForm";
 
 // Pastikan halaman selalu mengambil data terbaru dari database
 export const dynamic = "force-dynamic";

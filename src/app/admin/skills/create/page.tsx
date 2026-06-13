@@ -2,7 +2,7 @@
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/src/lib/rbac";
-import SkillForm from "@/src/components/admin/skills/SkillForm";
+import SkillForm from "@/src/app/admin/skills/components/SkillForm";
 
 export const metadata = { title: "Tambah Skill • Admin" };
 

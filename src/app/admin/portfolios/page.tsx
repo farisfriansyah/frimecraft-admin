@@ -2,8 +2,8 @@
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
-import { PortfolioDataTable } from "@/src/components/admin/portfolios/PortfolioDataTable";
-import { Button } from "@/components/ui/button";
+import { PortfolioDataTable } from "@/src/app/admin/portfolios/components/PortfolioDataTable";
+import { Button } from "@/src/app/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { hasPermission } from "@/src/lib/rbac"; // Impor helper RBAC pusat

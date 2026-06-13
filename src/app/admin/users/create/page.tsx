@@ -2,7 +2,7 @@ import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
 import { hasPermission } from "@/src/lib/rbac";
-import UserForm from "@/src/components/admin/users/UserForm";
+import UserForm from "@/src/app/admin/users/components/UserForm";
 
 export const metadata = { title: "Tambah Pengguna Baru • Admin" };
 

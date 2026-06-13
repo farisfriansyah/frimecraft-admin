@@ -3,7 +3,7 @@ import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
 import { hasPermission } from "@/src/lib/rbac";
-import PortfolioForm from "@/src/components/admin/portfolios/PortfolioForm";
+import PortfolioForm from "@/src/app/admin/portfolios/components/PortfolioForm";
 
 export const dynamic = "force-dynamic"; // Jaminan anti-cache server
 export const metadata = { title: "Tambah Portfolio • Admin" };

@@ -2,8 +2,8 @@
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
 import { db } from "@/src/lib/prisma";
-import { EducationDataTable } from "@/src/components/admin/educations/EducationDataTable";
-import { Button } from "@/components/ui/button";
+import { EducationDataTable } from "@/src/app/admin/educations/components/EducationDataTable";
+import { Button } from "@/src/app/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { hasPermission } from "@/src/lib/rbac";

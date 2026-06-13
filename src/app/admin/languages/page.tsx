@@ -1,8 +1,8 @@
 import { db } from "@/src/lib/prisma";
 import { getSession } from "@/src/lib/session";
 import { redirect } from "next/navigation";
-import { LanguageDataTable } from "@/src/components/admin/languages/LanguageDataTable";
-import { Button } from "@/components/ui/button";
+import { LanguageDataTable } from "@/src/app/admin/languages/components/LanguageDataTable";
+import { Button } from "@/src/app/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 

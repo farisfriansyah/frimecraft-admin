@@ -49,6 +49,7 @@ export async function createPortfolioAction(formData: FormData) {
     data: {
       userId: session.userId, // Tetap simpan siapa yang membuat, tapi jangan jadikan filter akses
       title: formData.get("title") as string,
+      slug: (formData.get("slug") as string) || null,
       description: (formData.get("description") as string) || null,
       imageUrl,
       projectUrl: (formData.get("projectUrl") as string) || null,
@@ -57,6 +58,9 @@ export async function createPortfolioAction(formData: FormData) {
       tags: (formData.get("tags") as string) || null,
       featured: formData.get("featured") === "true",
       isDisabled: formData.get("isDisabled") === "true",
+      seoTitle: (formData.get("seoTitle") as string) || null,
+      seoDescription: (formData.get("seoDescription") as string) || null,
+      keywords: (formData.get("keywords") as string) || null,
     },
   });
 
@@ -94,6 +98,7 @@ export async function updatePortfolioAction(id: number, formData: FormData) {
     where: { id },
     data: {
       title: formData.get("title") as string,
+      slug: (formData.get("slug") as string) || null,
       description: (formData.get("description") as string) || null,
       imageUrl: imageUrl ?? undefined,
       projectUrl: (formData.get("projectUrl") as string) || null,
@@ -102,6 +107,9 @@ export async function updatePortfolioAction(id: number, formData: FormData) {
       tags: (formData.get("tags") as string) || null,
       featured: formData.get("featured") === "true",
       isDisabled: formData.get("isDisabled") === "true",
+      seoTitle: (formData.get("seoTitle") as string) || null,
+      seoDescription: (formData.get("seoDescription") as string) || null,
+      keywords: (formData.get("keywords") as string) || null,
     },
   });
 

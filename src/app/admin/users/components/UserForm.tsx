@@ -44,7 +44,7 @@ export default function UserForm({
     const isEdit = mode === "edit";
 
     const { control, register, handleSubmit, formState: { errors } } = useForm<UserFormValues>({
-        resolver: zodResolver(schema),
+        resolver: zodResolver(schema) as any,
         defaultValues: {
             name: user?.name || "",
             email: user?.email || "",

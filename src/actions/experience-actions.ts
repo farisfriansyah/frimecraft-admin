@@ -21,6 +21,7 @@ export async function createExperienceAction(formData: FormData) {
     const data = {
       userId: session.userId,
       position: formData.get("position") as string,
+      slug: (formData.get("slug") as string) || null,
       companyId: formData.get("companyId") ? Number(formData.get("companyId")) : null,
       location: (formData.get("location") as string) || null,
       startMonth: Number(formData.get("startMonth")),
@@ -31,6 +32,9 @@ export async function createExperienceAction(formData: FormData) {
       isCurrent,
       description: (formData.get("description") as string) || null,
       tags: (formData.get("tags") as string)?.split(",").map(t => t.trim()).filter(Boolean) || [],
+      seoTitle: (formData.get("seoTitle") as string) || null,
+      seoDescription: (formData.get("seoDescription") as string) || null,
+      keywords: (formData.get("keywords") as string) || null,
     };
 
     await db.workExperience.create({ data });
@@ -60,6 +64,7 @@ export async function updateExperienceAction(id: number, formData: FormData) {
       where: { id },
       data: {
         position: formData.get("position") as string,
+        slug: (formData.get("slug") as string) || null,
         companyId: formData.get("companyId") ? Number(formData.get("companyId")) : null,
         location: (formData.get("location") as string) || null,
         startMonth: Number(formData.get("startMonth")),
@@ -69,6 +74,9 @@ export async function updateExperienceAction(id: number, formData: FormData) {
         isCurrent,
         description: (formData.get("description") as string) || null,
         tags: (formData.get("tags") as string)?.split(",").map(t => t.trim()).filter(Boolean) || [],
+        seoTitle: (formData.get("seoTitle") as string) || null,
+        seoDescription: (formData.get("seoDescription") as string) || null,
+        keywords: (formData.get("keywords") as string) || null,
       },
     });
 

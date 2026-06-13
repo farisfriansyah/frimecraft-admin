@@ -32,7 +32,7 @@ export default function CertificationForm({ certification, mode }: { certificati
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CertificationFormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: certification ? {
       title: certification.title,
       issuer: certification.issuer || "", // Convert null to ""

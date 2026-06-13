@@ -9,6 +9,7 @@ import {
   Languages,
   User,
   Award,
+  FileText,
   LogOut,
   Menu,
   X,
@@ -29,6 +30,7 @@ const navItems = [
   { href: "/admin/languages", label: "Languages", icon: Languages },
   { href: "/admin/users", label: "Users", icon: User },
   { href: "/admin/certifications", label: "Certifications", icon: Award },
+  { href: "/admin/articles", label: "Articles", icon: FileText },
 ];
 
 export default function AdminSidebar() {

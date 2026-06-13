@@ -39,7 +39,7 @@ export default function SkillForm({ skill, mode }: { skill?: Skill; mode: "creat
     watch,
     formState: { errors, isSubmitting },
   } = useForm<SkillFormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: skill ? {
       name: skill.name,
       level: skill.level || 50,

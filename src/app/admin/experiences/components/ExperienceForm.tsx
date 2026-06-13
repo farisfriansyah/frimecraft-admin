@@ -22,6 +22,7 @@ import { WorkExperience, Company } from "@prisma/client";
 
 const schema = z.object({
   position: z.string().min(2, "Posisi wajib diisi"),
+  slug: z.string().optional(),
   companyId: z.number().nullable(),
   location: z.string().nullable().optional(),
   startMonth: z.coerce.number().min(1).max(12),
@@ -31,6 +32,9 @@ const schema = z.object({
   isCurrent: z.boolean().default(false),
   description: z.string().nullable().optional(),
   tags: z.array(z.string()),
+  seoTitle: z.string().max(60, "Maksimal 60 karakter untuk SEO").optional(),
+  seoDescription: z.string().max(160, "Maksimal 160 karakter untuk SEO").optional(),
+  keywords: z.string().max(300, "Maksimal 300 karakter").optional(),
 }).refine(data => {
   if (data.isCurrent) return true;
   if (data.endYear && data.endMonth && data.startYear && data.startMonth) {
@@ -38,6 +42,15 @@ const schema = z.object({
   }
   return true;
 }, { message: "Tanggal selesai tidak valid", path: ["endMonth"] });
+
+function generateSlugFromPosition(position: string): string {
+  return position
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-]/g, "")
+    .replace(/\-+/g, "-");
+}
 
 type FormData = z.infer<typeof schema>;
 
@@ -59,9 +72,10 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: experience ? {
       position: experience.position,
+      slug: experience.slug || "",
       companyId: experience.companyId,
       location: experience.location,
       startMonth: experience.startMonth,
@@ -71,8 +85,12 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
       isCurrent: experience.isCurrent,
       description: experience.description,
       tags: experience.tags ?? [],
+      seoTitle: experience.seoTitle || "",
+      seoDescription: experience.seoDescription || "",
+      keywords: experience.keywords || "",
     } : {
       position: "",
+      slug: "",
       companyId: null,
       location: "",
       startMonth: new Date().getMonth() + 1,
@@ -82,10 +100,18 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
       isCurrent: false,
       description: "",
       tags: [],
+      seoTitle: "",
+      seoDescription: "",
+      keywords: "",
     },
   });
 
   const isCurrent = watch("isCurrent");
+  const positionValue = watch("position");
+  const slugValue = watch("slug");
+  const seoTitleLength = watch("seoTitle")?.length || 0;
+  const seoDescriptionLength = watch("seoDescription")?.length || 0;
+  const keywordsLength = watch("keywords")?.length || 0;
 
   const onSubmit = async (data: FormData, saveAndAddAnother = false) => {
     try {
@@ -137,8 +163,21 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 col-span-2">
               <Label>Posisi <span className="text-destructive">*</span></Label>
-              <Input {...register("position")} />
+              <Input 
+                {...register("position")}
+                onChange={(e) => {
+                  register("position").onChange?.(e);
+                  if (!slugValue) {
+                    setValue("slug", generateSlugFromPosition(e.target.value));
+                  }
+                }}
+              />
               {errors.position && <p className="text-sm text-destructive">{errors.position.message}</p>}
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label>Slug (URL-friendly)</Label>
+              <Input {...register("slug")} placeholder="slug-posisi" className="font-mono" />
+              <p className="text-xs text-muted-foreground">Auto-generated dari posisi, tapi bisa diedit</p>
             </div>
             <div className="space-y-2">
               <Label>Perusahaan</Label>
@@ -195,6 +234,56 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
           <Label>Keahlian (Tags)</Label>
           <TagsInput value={watch("tags") ?? []} onChange={(t) => setValue("tags", t)} />
         </div>
+
+        {/* SEO & Meta Tags */}
+        <Card>
+          <CardHeader>
+            <CardTitle>SEO & Meta Tags</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="seoTitle">SEO Title</Label>
+              <Input
+                id="seoTitle"
+                {...register("seoTitle")}
+                placeholder="Judul untuk search engines (max 60 char)"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{seoTitleLength}/60 karakter</span>
+                <span>{seoTitleLength > 60 ? "❌ Terlalu panjang" : "✅"}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="seoDescription">Meta Description</Label>
+              <textarea
+                id="seoDescription"
+                {...register("seoDescription")}
+                placeholder="Deskripsi untuk preview di search engines (max 160 char)"
+                rows={2}
+                className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{seoDescriptionLength}/160 karakter</span>
+                <span>{seoDescriptionLength > 160 ? "❌ Terlalu panjang" : "✅"}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="keywords">Keywords / Kata Kunci</Label>
+              <textarea
+                id="keywords"
+                {...register("keywords")}
+                placeholder="Kata kunci yang relevan, pisahkan dengan koma (max 300 char)"
+                rows={2}
+                className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{keywordsLength}/300 karakter</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Sidebar Aksi */}

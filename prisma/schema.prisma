@@ -62,6 +62,7 @@ model User {
   languages       Language[]
   certifications  Certification[]
   portfolios      Portfolio[]
+  articles        Article[]
 
   @@map("users")
 }
@@ -77,6 +78,7 @@ model WorkExperience {
 
   position String // Jabatan / Nama Bagian
   location String? // Lokasi (optional)
+  slug     String?
 
   startMonth Int // 1 - 12
   startYear  Int
@@ -87,6 +89,11 @@ model WorkExperience {
 
   description String?  @db.Text // Rich text
   tags        String[] @default([])
+
+  // SEO Fields
+  seoTitle       String?
+  seoDescription String?
+  keywords       String? // comma-separated
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -99,11 +106,18 @@ model Education {
   userId      Int
   institution String
   degree      String?
+  slug        String?
   startDate   DateTime?
   endDate     DateTime?
   description String?
 
   user User @relation(fields: [userId], references: [id])
+
+  // SEO Fields
+  seoTitle       String?
+  seoDescription String?
+  keywords       String? // comma-separated
+  tags           String? // comma-separated
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -115,10 +129,17 @@ model Skill {
   id     Int     @id @default(autoincrement())
   userId Int
   name   String
+  slug   String?
   level  Int? // 0-100
   notes  String?
 
   user User @relation(fields: [userId], references: [id])
+
+  // SEO Fields
+  seoTitle       String?
+  seoDescription String?
+  keywords       String? // comma-separated
+  tags           String? // comma-separated
 
   @@map("skills")
 }
@@ -127,9 +148,16 @@ model Language {
   id          Int     @id @default(autoincrement())
   userId      Int
   name        String
+  slug        String?
   proficiency String?
 
   user User @relation(fields: [userId], references: [id])
+
+  // SEO Fields
+  seoTitle       String?
+  seoDescription String?
+  keywords       String? // comma-separated
+  tags           String? // comma-separated
 
   @@map("languages")
 }
@@ -138,11 +166,18 @@ model Certification {
   id        Int       @id @default(autoincrement())
   userId    Int
   title     String
+  slug      String?
   issuer    String?
   issueDate DateTime?
   url       String?
 
   user User @relation(fields: [userId], references: [id])
+
+  // SEO Fields
+  seoTitle       String?
+  seoDescription String?
+  keywords       String? // comma-separated
+  tags           String? // comma-separated
 
   @@map("certifications")
 }
@@ -150,6 +185,7 @@ model Certification {
 model Portfolio {
   id          Int     @id @default(autoincrement())
   title       String
+  slug        String?
   description String? @db.Text
   imageUrl    String?
   projectUrl  String?
@@ -158,6 +194,11 @@ model Portfolio {
   tags        String?
   featured    Boolean @default(false)
   isDisabled  Boolean @default(false)
+
+  // SEO Fields
+  seoTitle       String?
+  seoDescription String?
+  keywords       String? // comma-separated
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -185,4 +226,28 @@ model Company {
   workExperiences      WorkExperience[]
 
   @@map("companies")
+}
+
+model Article {
+  id        Int      @id @default(autoincrement())
+  title     String
+  slug      String   @unique
+  excerpt   String?  @db.Text
+  content   String   @db.Text
+  featuredImage String? // Featured image URL
+  isPublished Boolean @default(false)
+
+  // SEO Fields
+  seoTitle    String?
+  seoDescription String?
+  keywords    String? // comma-separated
+  tags        String? // comma-separated
+
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("articles")
 }

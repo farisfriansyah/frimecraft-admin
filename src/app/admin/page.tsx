@@ -35,7 +35,7 @@ export default async function DashboardPage() {
     db.certification.count(),   // Global count
   ]);
 
-  const featuredCount = portfolios.filter(p => p.featured).length;
+  const featuredCount = portfolios.filter((p: typeof portfolios[0]) => p.featured).length;
 
   const stats = [
     { title: "Total Portfolios", value: portfolios.length, icon: Briefcase, desc: `${featuredCount} featured` },
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
               <p className="text-center py-12 text-muted-foreground">Belum ada portfolio</p>
             ) : (
               <div className="space-y-4">
-                {portfolios.slice(0, 5).map((portfolio) => (
+                {portfolios.slice(0, 5).map((portfolio: typeof portfolios[0]) => (
                   <Link
                     key={portfolio.id}
                     href={`/admin/portfolios/edit/${portfolio.id}`}

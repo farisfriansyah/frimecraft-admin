@@ -16,7 +16,16 @@ import { ArrowLeft, GraduationCap, Calendar, Loader2, Save } from "lucide-react"
 import Link from "next/link";
 import RichTextEditor from "../../portfolios/components/RichTextEditor";
 import { createEducationAction, updateEducationAction } from "@/src/actions/education-actions";
-import { Education } from "@prisma/client";
+
+type EducationRecord = {
+  id: number;
+  institution: string;
+  degree?: string | null;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  description?: string | null;
+  isCurrent?: boolean;
+};
 
 const schema = z.object({
   institution: z.string().min(1, "Institusi wajib diisi"),
@@ -35,9 +44,9 @@ const schema = z.object({
   path: ["endDate"],
 });
 
-type EducationFormValues = z.infer<typeof schema>;
+type EducationFormValues = Omit<z.infer<typeof schema>, 'isCurrent'> & { isCurrent?: boolean };
 
-export default function EducationForm({ education, mode }: { education?: Education; mode: "create" | "edit" }) {
+export default function EducationForm({ education, mode }: { education?: EducationRecord; mode: "create" | "edit" }) {
   const router = useRouter();
   const isEdit = mode === "edit";
 
@@ -49,7 +58,7 @@ export default function EducationForm({ education, mode }: { education?: Educati
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<EducationFormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       institution: education?.institution || "",
       degree: education?.degree || "",

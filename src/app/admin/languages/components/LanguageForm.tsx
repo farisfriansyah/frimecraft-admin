@@ -48,7 +48,7 @@ export default function LanguageForm({ language, mode }: { language?: Language; 
     control,
     formState: { errors, isSubmitting },
   } = useForm<LanguageFormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: language ? {
       name: language.name,
       proficiency: language.proficiency || "",

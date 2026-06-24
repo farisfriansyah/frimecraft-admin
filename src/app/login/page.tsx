@@ -51,7 +51,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="admin@frimecraft.com"
+                placeholder="Enter your email..."
                 required
               />
             </div>

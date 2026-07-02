@@ -21,7 +21,7 @@ export default async function ArticlesPage() {
 
   const articles = await db.article.findMany({
     include: { author: { select: { name: true } } },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ sortNumber: "asc" }, { createdAt: "desc" }],
   });
 
   return (

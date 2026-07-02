@@ -20,6 +20,7 @@ import { TagsInput } from "@/src/app/ui/tags-input";
 const schema = z.object({
   title: z.string().min(3, "Minimal 3 karakter").max(200, "Maksimal 200 karakter"),
   slug: z.string().optional(),
+  sortNumber: z.number().int().nullable().optional(),
   excerpt: z.string().max(500, "Maksimal 500 karakter").optional(),
   content: z.string().min(10, "Konten minimal 10 karakter").optional(),
   featuredImage: z.instanceof(File).optional(),
@@ -41,6 +42,7 @@ type Props = {
     content?: string | null;
     featuredImage?: string | null;
     tags?: string | null;
+    sortNumber?: number | null;
     keywords?: string | null;
     seoTitle?: string | null;
     seoDescription?: string | null;
@@ -68,6 +70,7 @@ export default function ArticleForm({ article, mode }: Props) {
       ? {
           title: article.title,
           slug: article.slug || "",
+          sortNumber: article.sortNumber ?? null,
           excerpt: article.excerpt || "",
           content: article.content || "",
           tags: article.tags ? article.tags.split(",").map((t) => t.trim()) : [],
@@ -76,7 +79,7 @@ export default function ArticleForm({ article, mode }: Props) {
           seoDescription: article.seoDescription || "",
           isPublished: article.isPublished,
         }
-      : { isPublished: false, excerpt: "", content: "", tags: [], keywords: "", seoTitle: "", seoDescription: "" },
+        : { isPublished: false, sortNumber: null, excerpt: "", content: "", tags: [], keywords: "", seoTitle: "", seoDescription: "" },
   });
 
   const titleValue = watch("title");
@@ -171,6 +174,21 @@ export default function ArticleForm({ article, mode }: Props) {
                     className="font-mono"
                   />
                   <p className="text-xs text-muted-foreground">Auto-generated dari judul, tapi bisa diedit</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sortNumber">Sort Number</Label>
+                  <Input
+                    id="sortNumber"
+                    type="number"
+                    value={watch("sortNumber") ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setValue("sortNumber", raw === "" ? null : Number(raw));
+                    }}
+                    placeholder="Kosongkan untuk urutan default terbaru"
+                  />
+                  <p className="text-xs text-muted-foreground">Angka lebih kecil tampil lebih dulu. Jika kosong, fallback terbaru ke terlama.</p>
                 </div>
               </CardContent>
             </Card>

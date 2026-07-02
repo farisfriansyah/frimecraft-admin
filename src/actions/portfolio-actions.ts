@@ -8,6 +8,14 @@ import { writeFile, mkdir } from "fs/promises";
 import fs from "fs/promises"; 
 import path from "path";
 
+function parseOptionalSortNumber(value: FormDataEntryValue | null): number | null {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return null;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.floor(parsed);
+}
+
 // === HELPER: Pastikan folder ada ===
 async function ensureDirectoryExists(filePath: string) {
   const dir = path.dirname(filePath);
@@ -45,6 +53,7 @@ export async function createPortfolioAction(formData: FormData) {
       userId: guard.userId, // Tetap simpan siapa yang membuat, tapi jangan jadikan filter akses
       title: formData.get("title") as string,
       slug: (formData.get("slug") as string) || null,
+      sortNumber: parseOptionalSortNumber(formData.get("sortNumber")),
       description: (formData.get("description") as string) || null,
       imageUrl,
       projectUrl: (formData.get("projectUrl") as string) || null,
@@ -90,6 +99,7 @@ export async function updatePortfolioAction(id: number, formData: FormData) {
     data: {
       title: formData.get("title") as string,
       slug: (formData.get("slug") as string) || null,
+      sortNumber: parseOptionalSortNumber(formData.get("sortNumber")),
       description: (formData.get("description") as string) || null,
       imageUrl: imageUrl ?? undefined,
       projectUrl: (formData.get("projectUrl") as string) || null,

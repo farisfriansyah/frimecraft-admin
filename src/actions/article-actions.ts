@@ -8,6 +8,14 @@ import { writeFile, mkdir } from "fs/promises";
 import fs from "fs/promises";
 import path from "path";
 
+function parseOptionalSortNumber(value: FormDataEntryValue | null): number | null {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return null;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.floor(parsed);
+}
+
 function slugify(text: string) {
   return text
     .toString()
@@ -65,6 +73,7 @@ export async function createArticleAction(formData: FormData) {
   const seoDescription = (formData.get("seoDescription") as string) || null;
   const keywords = (formData.get("keywords") as string) || null;
   const tags = (formData.get("tags") as string) || null;
+  const sortNumber = parseOptionalSortNumber(formData.get("sortNumber"));
 
   const article = await db.article.create({
     data: {
@@ -78,6 +87,7 @@ export async function createArticleAction(formData: FormData) {
       seoDescription,
       keywords,
       tags,
+      sortNumber,
       authorId: guard.userId,
     },
   });
@@ -119,6 +129,7 @@ export async function updateArticleAction(id: number, formData: FormData) {
   const seoDescription = (formData.get("seoDescription") as string) || null;
   const keywords = (formData.get("keywords") as string) || null;
   const tags = (formData.get("tags") as string) || null;
+  const sortNumber = parseOptionalSortNumber(formData.get("sortNumber"));
 
   const updated = await db.article.update({
     where: { id },
@@ -133,6 +144,7 @@ export async function updateArticleAction(id: number, formData: FormData) {
       seoDescription,
       keywords,
       tags,
+      sortNumber,
     },
   });
 

@@ -50,6 +50,7 @@ import { deletePortfolioAction } from "@/src/actions/portfolio-actions";
 export type Portfolio = {
   id: number;
   title: string;
+  sortNumber?: number | null;
   imageUrl: string | null;
   featured: boolean;
   isDisabled: boolean;
@@ -127,6 +128,23 @@ export function PortfolioDataTable({ data, permissions }: Props) {
           </div>
         </div>
       ),
+    },
+    {
+      accessorKey: "sortNumber",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-8 px-2"
+        >
+          Sort
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const value = row.getValue("sortNumber") as number | null;
+        return <div className="text-sm">{value ?? "-"}</div>;
+      },
     },
     {
       accessorKey: "workFor.name",
@@ -335,7 +353,8 @@ export function PortfolioDataTable({ data, permissions }: Props) {
                   checked={column.getIsVisible()}
                   onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 >
-                  {column.id === "workFor.name" ? "Client" :
+                  {column.id === "sortNumber" ? "Sort" :
+                   column.id === "workFor.name" ? "Client" :
                    column.id === "workAt.name" ? "Employer" :
                    column.id}
                 </DropdownMenuCheckboxItem>

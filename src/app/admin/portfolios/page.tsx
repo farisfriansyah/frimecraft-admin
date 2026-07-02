@@ -24,8 +24,19 @@ export default async function PortfoliosPage() {
   // 2. Ambil data portfolio spesifik milik user yang sedang login dari PostgreSQL
   const portfolios = await db.portfolio.findMany({
     // where: { userId: session.userId },
-    include: { workFor: true, workAt: true },
-    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      sortNumber: true,
+      imageUrl: true,
+      featured: true,
+      isDisabled: true,
+      createdAt: true,
+      tags: true,
+      workFor: { select: { name: true } },
+      workAt: { select: { name: true } },
+    },
+    orderBy: [{ sortNumber: "asc" }, { createdAt: "desc" }],
   });
 
   return (

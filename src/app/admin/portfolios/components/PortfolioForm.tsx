@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/src/app/ui/card";
 const schema = z.object({
   title: z.string().min(3, "Minimal 3 karakter"),
   slug: z.string().optional(),
+  sortNumber: z.number().int().nullable().optional(),
   description: z.string().optional(),
   image: z.instanceof(File).optional(),
   projectUrl: z.string().url().optional().or(z.literal("")),
@@ -51,6 +52,7 @@ type Props = {
     id: number;
     title: string;
     slug?: string | null;
+    sortNumber?: number | null;
     description?: string | null;
     imageUrl?: string | null;
     projectUrl?: string | null;
@@ -83,6 +85,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
       ? {
           title: portfolio.title,
           slug: portfolio.slug || "",
+          sortNumber: portfolio.sortNumber ?? null,
           description: portfolio.description || "",
           projectUrl: portfolio.projectUrl || "",
           workForId: portfolio.workForId ?? null,
@@ -99,6 +102,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
           featured: false,
           isDisabled: false,
           slug: "",
+          sortNumber: null,
           seoTitle: "",
           seoDescription: "",
           keywords: "",
@@ -194,6 +198,21 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">Auto-generated dari judul, tapi bisa diedit</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="sortNumber">Sort Number</Label>
+              <Input
+                id="sortNumber"
+                type="number"
+                value={watch("sortNumber") ?? ""}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setValue("sortNumber", raw === "" ? null : Number(raw));
+                }}
+                placeholder="Kosongkan untuk urutan default terbaru"
+              />
+              <p className="text-xs text-muted-foreground">Angka lebih kecil tampil lebih dulu. Jika kosong, fallback terbaru ke terlama.</p>
             </div>
 
             {/* Description */}

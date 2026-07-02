@@ -52,6 +52,7 @@ export type Article = {
   id: number;
   title: string;
   slug: string;
+  sortNumber: number | null;
   excerpt: string | null;
   featuredImage: string | null;
   isPublished: boolean;
@@ -134,6 +135,23 @@ export function ArticleDataTable({ data, permissions }: Props) {
       accessorKey: "slug",
       header: "Slug",
       cell: ({ row }) => <div className="text-sm font-mono text-muted-foreground">{row.getValue("slug")}</div>,
+    },
+    {
+      accessorKey: "sortNumber",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-8 px-2"
+        >
+          Sort
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const value = row.getValue("sortNumber") as number | null;
+        return <div className="text-sm">{value ?? "-"}</div>;
+      },
     },
     {
       accessorKey: "author.name",
@@ -310,6 +328,7 @@ export function ArticleDataTable({ data, permissions }: Props) {
                 >
                   {column.id === "title" ? "Judul" :
                    column.id === "slug" ? "Slug" :
+                   column.id === "sortNumber" ? "Sort" :
                    column.id === "author.name" ? "Penulis" :
                    column.id === "isPublished" ? "Status" :
                    column.id === "createdAt" ? "Dibuat" :

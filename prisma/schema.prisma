@@ -186,6 +186,7 @@ model Portfolio {
   id          Int     @id @default(autoincrement())
   title       String
   slug        String?
+  sortNumber  Int?
   description String? @db.Text
   imageUrl    String?
   projectUrl  String?
@@ -232,6 +233,7 @@ model Article {
   id        Int      @id @default(autoincrement())
   title     String
   slug      String   @unique
+  sortNumber Int?
   excerpt   String?  @db.Text
   content   String   @db.Text
   featuredImage String? // Featured image URL

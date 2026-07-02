@@ -10,8 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/src/app/ui/dropdown-menu";
-import { LogOut, User } from "lucide-react";
+import { LogOut, Settings, User } from "lucide-react";
 import { logoutAction } from "@/src/actions/auth-actions";
+import Link from "next/link";
 
 // Gunakan interface yang lebih ketat agar tidak ada error undefined di UI
 interface UserProfile {
@@ -94,6 +95,13 @@ export default function AdminNavbar({ currentUser }: AdminNavbarProps) {
             <DropdownMenuItem className="cursor-pointer">
               <User className="mr-2 h-4 w-4 text-muted-foreground" />
               <span>Profil Saya</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/admin/frontend-settings">
+                <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>Frontend Settings</span>
+              </Link>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />

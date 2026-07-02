@@ -2,8 +2,7 @@
 "use server";
 
 import { db } from "@/src/lib/prisma";
-import { getSession } from "@/src/lib/session";
-import { hasPermission } from "@/src/lib/rbac";
+import { guardActionPermission } from "@/src/lib/security/guards";
 import { revalidatePath } from "next/cache";
 import { writeFile, mkdir } from "fs/promises";
 import fs from "fs/promises"; 
@@ -21,12 +20,8 @@ async function ensureDirectoryExists(filePath: string) {
 
 // === CREATE PORTFOLIO ===
 export async function createPortfolioAction(formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) throw new Error("Unauthorized");
-
-  // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.create'
-  const canCreate = await hasPermission(session.userId, "portfolio.create");
-  if (!canCreate) {
+  const guard = await guardActionPermission("portfolio.create");
+  if (!guard.ok) {
     throw new Error("Akses ditolak! Anda tidak memiliki izin untuk membuat portfolio.");
   }
 
@@ -47,7 +42,7 @@ export async function createPortfolioAction(formData: FormData) {
 
   const newPortfolio = await db.portfolio.create({
     data: {
-      userId: session.userId, // Tetap simpan siapa yang membuat, tapi jangan jadikan filter akses
+      userId: guard.userId, // Tetap simpan siapa yang membuat, tapi jangan jadikan filter akses
       title: formData.get("title") as string,
       slug: (formData.get("slug") as string) || null,
       description: (formData.get("description") as string) || null,
@@ -71,12 +66,8 @@ export async function createPortfolioAction(formData: FormData) {
 
 // === UPDATE PORTFOLIO ===
 export async function updatePortfolioAction(id: number, formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) throw new Error("Unauthorized");
-
-  // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.update'
-  const canUpdate = await hasPermission(session.userId, "portfolio.update");
-  if (!canUpdate) {
+  const guard = await guardActionPermission("portfolio.update");
+  if (!guard.ok) {
     throw new Error("Akses ditolak! Anda tidak memiliki izin untuk memperbarui portfolio.");
   }
 
@@ -133,14 +124,8 @@ async function deletePhysicalFile(imageUrl: string | null) {
 // === DELETE PORTFOLIO ACTION ===
 export async function deletePortfolioAction(id: string | number) {
   try {
-    const session = await getSession();
-    if (!session?.userId) {
-      return { success: false, error: "Unauthorized" };
-    }
-
-    // PROTEKSI MUTLAK SERVER: Validasi hak akses 'portfolio.delete'
-    const canDelete = await hasPermission(session.userId, "portfolio.delete");
-    if (!canDelete) {
+    const guard = await guardActionPermission("portfolio.delete");
+    if (!guard.ok) {
       return { success: false, error: "Akses ditolak! Anda tidak memiliki izin menghapus." };
     }
 

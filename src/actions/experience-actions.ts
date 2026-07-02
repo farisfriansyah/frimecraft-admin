@@ -2,24 +2,24 @@
 "use server";
 
 import { db } from "@/src/lib/prisma";
-import { getSession } from "@/src/lib/session";
-import { hasPermission } from "@/src/lib/rbac";
+import { guardActionPermission } from "@/src/lib/security/guards";
 import { revalidatePath } from "next/cache";
 
 // === CREATE EXPERIENCE ===
 export async function createExperienceAction(formData: FormData) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, error: "Unauthorized" };
-
-    // Proteksi RBAC
-    const canCreate = await hasPermission(session.userId, "experience.create");
-    if (!canCreate) return { success: false, error: "Akses ditolak! Anda tidak memiliki izin." };
+    const guard = await guardActionPermission("experience.create");
+    if (!guard.ok) {
+      return {
+        success: false,
+        error: guard.error === "Akses ditolak" ? "Akses ditolak! Anda tidak memiliki izin." : guard.error,
+      };
+    }
 
     const isCurrent = formData.get("isCurrent") === "true";
 
     const data = {
-      userId: session.userId,
+      userId: guard.userId,
       position: formData.get("position") as string,
       slug: (formData.get("slug") as string) || null,
       companyId: formData.get("companyId") ? Number(formData.get("companyId")) : null,
@@ -51,12 +51,13 @@ export async function createExperienceAction(formData: FormData) {
 // === UPDATE EXPERIENCE ===
 export async function updateExperienceAction(id: number, formData: FormData) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, error: "Unauthorized" };
-
-    // Proteksi RBAC
-    const canUpdate = await hasPermission(session.userId, "experience.update");
-    if (!canUpdate) return { success: false, error: "Akses ditolak! Anda tidak memiliki izin." };
+    const guard = await guardActionPermission("experience.update");
+    if (!guard.ok) {
+      return {
+        success: false,
+        error: guard.error === "Akses ditolak" ? "Akses ditolak! Anda tidak memiliki izin." : guard.error,
+      };
+    }
 
     const isCurrent = formData.get("isCurrent") === "true";
 
@@ -92,12 +93,13 @@ export async function updateExperienceAction(id: number, formData: FormData) {
 // === DELETE EXPERIENCE ===
 export async function deleteExperienceAction(id: number | string) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, error: "Unauthorized" };
-
-    // Proteksi RBAC
-    const canDelete = await hasPermission(session.userId, "experience.delete");
-    if (!canDelete) return { success: false, error: "Akses ditolak!" };
+    const guard = await guardActionPermission("experience.delete");
+    if (!guard.ok) {
+      return {
+        success: false,
+        error: guard.error === "Akses ditolak" ? "Akses ditolak!" : guard.error,
+      };
+    }
 
     const experienceId = Number(id);
     if (isNaN(experienceId)) return { success: false, error: "ID tidak valid" };

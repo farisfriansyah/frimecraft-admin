@@ -1,16 +1,12 @@
 "use server";
 
 import { db } from "@/src/lib/prisma";
-import { getSession } from "@/src/lib/session";
-import { hasPermission } from "@/src/lib/rbac";
+import { guardActionPermission } from "@/src/lib/security/guards";
 import { revalidatePath } from "next/cache";
 
 export async function createCertificationAction(formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) return { success: false, error: "Unauthorized" };
-
-  const canManage = await hasPermission(session.userId, "experience.manage");
-  if (!canManage) return { success: false, error: "Akses ditolak" };
+  const guard = await guardActionPermission("certification.manage");
+  if (!guard.ok) return { success: false, error: guard.error };
 
   try {
     const title = formData.get("title") as string;
@@ -20,7 +16,7 @@ export async function createCertificationAction(formData: FormData) {
 
     await db.certification.create({
       data: { 
-        userId: session.userId,
+        userId: guard.userId,
         title, 
         issuer, 
         issueDate, 
@@ -40,11 +36,8 @@ export async function updateCertificationAction(id: string, formData: FormData) 
   const certificationId = Number(id);
   if (isNaN(certificationId)) return { success: false, error: "ID tidak valid" };
 
-  const session = await getSession();
-  if (!session?.userId) return { success: false, error: "Unauthorized" };
-
-  const canManage = await hasPermission(session.userId, "experience.manage");
-  if (!canManage) return { success: false, error: "Akses ditolak" };
+  const guard = await guardActionPermission("certification.manage");
+  if (!guard.ok) return { success: false, error: guard.error };
 
   try {
     const title = formData.get("title") as string;
@@ -55,7 +48,7 @@ export async function updateCertificationAction(id: string, formData: FormData) 
     await db.certification.update({
       where: { 
         id: certificationId, // Gunakan variabel number
-        userId: session.userId 
+        userId: guard.userId 
       },
       data: { title, issuer, issueDate, url },
     });
@@ -72,17 +65,14 @@ export async function deleteCertificationAction(id: string) {
   const certificationId = Number(id);
   if (isNaN(certificationId)) return { success: false, error: "ID tidak valid" };
 
-  const session = await getSession();
-  if (!session?.userId) return { success: false, error: "Unauthorized" };
-
-  const canManage = await hasPermission(session.userId, "experience.manage");
-  if (!canManage) return { success: false, error: "Akses ditolak" };
+  const guard = await guardActionPermission("certification.manage");
+  if (!guard.ok) return { success: false, error: guard.error };
 
   try {
     await db.certification.delete({ 
       where: { 
         id: certificationId, // Gunakan variabel number
-        userId: session.userId 
+        userId: guard.userId 
       } 
     });
 

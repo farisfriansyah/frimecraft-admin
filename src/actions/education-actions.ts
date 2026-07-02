@@ -1,13 +1,12 @@
 "use server";
 
 import { db } from "@/src/lib/prisma";
-import { getSession } from "@/src/lib/session";
-import { hasPermission } from "@/src/lib/rbac";
+import { guardActionPermission } from "@/src/lib/security/guards";
 import { revalidatePath } from "next/cache";
 
 export async function createEducationAction(formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) return { success: false, error: "Unauthorized" };
+  const guard = await guardActionPermission("education.manage");
+  if (!guard.ok) return { success: false, error: guard.error };
 
   try {
     const startDate = formData.get("startDate");
@@ -15,7 +14,7 @@ export async function createEducationAction(formData: FormData) {
 
     await db.education.create({
       data: {
-        userId: session.userId,
+        userId: guard.userId,
         institution: formData.get("institution") as string,
         degree: (formData.get("degree") as string) || null,
         description: (formData.get("description") as string) || null,
@@ -37,15 +36,15 @@ export async function createEducationAction(formData: FormData) {
 }
 
 export async function updateEducationAction(id: number, formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) return { success: false, error: "Unauthorized" };
+  const guard = await guardActionPermission("education.manage");
+  if (!guard.ok) return { success: false, error: guard.error };
 
   try {
     const startDate = formData.get("startDate");
     const endDate = formData.get("endDate");
 
     await db.education.update({
-      where: { id, userId: session.userId },
+      where: { id, userId: guard.userId },
       data: {
         institution: formData.get("institution") as string,
         degree: (formData.get("degree") as string) || null,
@@ -68,12 +67,8 @@ export async function updateEducationAction(id: number, formData: FormData) {
 
 // === DELETE EDUCATION ===
 export async function deleteEducationAction(id: number) {
-  const session = await getSession();
-  if (!session?.userId) return { success: false, error: "Unauthorized" };
-
-  // Proteksi RBAC: Pastikan user punya hak akses
-  const canManage = await hasPermission(session.userId, "education.manage");
-  if (!canManage) return { success: false, error: "Akses ditolak" };
+  const guard = await guardActionPermission("education.manage");
+  if (!guard.ok) return { success: false, error: guard.error };
 
   try {
     // Keamanan Berlapis: Filter dengan userId agar user tidak bisa 
@@ -81,7 +76,7 @@ export async function deleteEducationAction(id: number) {
     await db.education.delete({
       where: {
         id,
-        userId: session.userId,
+        userId: guard.userId,
       },
     });
 

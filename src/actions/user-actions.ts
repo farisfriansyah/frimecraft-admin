@@ -2,19 +2,22 @@
 "use server";
 
 import { db } from "@/src/lib/prisma";
-import { getSession } from "@/src/lib/session";
-import { hasPermission } from "@/src/lib/rbac";
+import { guardActionPermission } from "@/src/lib/security/guards";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 
 // === 1. CREATE USER ===
 export async function createUserAction(formData: FormData) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, message: "Sesi kedaluwarsa." };
-
-    const canCreate = await hasPermission(session.userId, "user.create");
-    if (!canCreate) return { success: false, message: "Akses ditolak. Anda tidak punya izin membuat user baru." };
+    const guard = await guardActionPermission("user.create");
+    if (!guard.ok) {
+      return {
+        success: false,
+        message: guard.error === "Unauthorized"
+          ? "Sesi kedaluwarsa."
+          : "Akses ditolak. Anda tidak punya izin membuat user baru.",
+      };
+    }
 
     const name = formData.get("name") as string;
     const email = (formData.get("email") as string).trim().toLowerCase();
@@ -51,11 +54,15 @@ export async function createUserAction(formData: FormData) {
 // === 2. UPDATE PROFILE & ROLE USER ===
 export async function updateUserAction(userId: number, formData: FormData) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, message: "Sesi kedaluwarsa." };
-
-    const canUpdate = await hasPermission(session.userId, "user.update");
-    if (!canUpdate) return { success: false, message: "Akses ditolak. Anda tidak punya izin mengubah data user." };
+    const guard = await guardActionPermission("user.update");
+    if (!guard.ok) {
+      return {
+        success: false,
+        message: guard.error === "Unauthorized"
+          ? "Sesi kedaluwarsa."
+          : "Akses ditolak. Anda tidak punya izin mengubah data user.",
+      };
+    }
 
     const name = formData.get("name") as string;
     const email = (formData.get("email") as string).trim().toLowerCase();
@@ -82,11 +89,15 @@ export async function updateUserAction(userId: number, formData: FormData) {
 // === 3. CHANGE PASSWORD USER ===
 export async function changeUserPasswordAction(userId: number, formData: FormData) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, message: "Sesi kedaluwarsa." };
-
-    const canUpdate = await hasPermission(session.userId, "user.update");
-    if (!canUpdate) return { success: false, message: "Akses ditolak. Anda tidak memiliki izin ganti password." };
+    const guard = await guardActionPermission("user.update");
+    if (!guard.ok) {
+      return {
+        success: false,
+        message: guard.error === "Unauthorized"
+          ? "Sesi kedaluwarsa."
+          : "Akses ditolak. Anda tidak memiliki izin ganti password.",
+      };
+    }
 
     const newPassword = formData.get("newPassword") as string;
     if (!newPassword || newPassword.length < 6) {
@@ -110,13 +121,17 @@ export async function changeUserPasswordAction(userId: number, formData: FormDat
 // === 4. DELETE USER ===
 export async function deleteUserAction(userId: number) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, message: "Sesi kedaluwarsa." };
+    const guard = await guardActionPermission("user.delete");
+    if (!guard.ok) {
+      return {
+        success: false,
+        message: guard.error === "Unauthorized"
+          ? "Sesi kedaluwarsa."
+          : "Akses ditolak. Anda tidak punya izin menghapus user.",
+      };
+    }
 
-    const canDelete = await hasPermission(session.userId, "user.delete");
-    if (!canDelete) return { success: false, message: "Akses ditolak. Anda tidak punya izin menghapus user." };
-
-    if (session.userId === userId) {
+    if (guard.userId === userId) {
       return { success: false, message: "Tindakan ilegal! Anda tidak bisa menghapus akun Anda sendiri." };
     }
 
@@ -133,14 +148,16 @@ export async function deleteUserAction(userId: number) {
 // === 5. TOGGLE USER STATUS (AKTIF/NONAKTIF) ===
 export async function toggleUserStatusAction(userId: number, currentStatus: boolean) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, message: "Sesi kedaluwarsa." };
-
-    const canUpdate = await hasPermission(session.userId, "user.update");
-    if (!canUpdate) return { success: false, message: "Akses ditolak." };
+    const guard = await guardActionPermission("user.update");
+    if (!guard.ok) {
+      return {
+        success: false,
+        message: guard.error === "Unauthorized" ? "Sesi kedaluwarsa." : "Akses ditolak.",
+      };
+    }
 
     // Mencegah admin menonaktifkan diri sendiri
-    if (session.userId === userId) {
+    if (guard.userId === userId) {
       return { success: false, message: "Anda tidak bisa mengubah status akun Anda sendiri." };
     }
 

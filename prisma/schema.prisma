@@ -251,3 +251,37 @@ model Article {
 
   @@map("articles")
 }
+
+model SecurityAuditLog {
+  id        Int      @id @default(autoincrement())
+  event     String
+  status    String
+  route     String
+  method    String
+  actorId   Int?
+  detail    Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([event])
+  @@index([status])
+  @@index([actorId])
+  @@map("security_audit_logs")
+}
+
+model FrontendSetting {
+  id             Int      @id @default(autoincrement())
+  key            String   @unique @default("default")
+  siteTitle      String?
+  siteDescription String?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  canonicalUrl   String?
+  ogImageUrl     String?
+  footerText     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("frontend_settings")
+}

@@ -1,14 +1,9 @@
 // src/lib/session.ts
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
+import { getSessionSecretBytes } from '@/src/lib/security/config';
 
-// Keamanan: Validasi secret di awal
-const SECRET_KEY = process.env.SESSION_SECRET;
-if (!SECRET_KEY && process.env.NODE_ENV === 'production') {
-  throw new Error('FATAL: SESSION_SECRET must be set in production!');
-}
-
-const secret = new TextEncoder().encode(SECRET_KEY ?? 'dev-secret-key-yang-sangat-panjang-dan-unik');
+const secret = getSessionSecretBytes();
 
 /**
  * Membuat sesi dengan payload userId dan role.

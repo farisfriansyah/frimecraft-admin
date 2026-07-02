@@ -23,18 +23,35 @@ async function main() {
   // ==========================================
   const permissionsData = [
     { name: "all", description: "Akses penuh ke seluruh sistem" },
+    { name: "role.manage", description: "Izin mengelola role dan permission" },
+    { name: "user.read", description: "Izin melihat daftar pengguna" },
+    { name: "user.create", description: "Izin membuat pengguna" },
+    { name: "user.update", description: "Izin mengubah pengguna" },
+    { name: "user.delete", description: "Izin menghapus pengguna" },
     { name: "portfolio.create", description: "Izin membuat portofolio" },
     { name: "portfolio.update", description: "Izin mengubah portofolio" },
     { name: "portfolio.delete", description: "Izin menghapus portofolio" },
-    { name: "experience.manage", description: "Izin mengatur riwayat kerja" },
-    { name: "user.manage", description: "Izin manajemen pengguna admin" },
+    { name: "article.create", description: "Izin membuat artikel" },
+    { name: "article.update", description: "Izin mengubah artikel" },
+    { name: "article.delete", description: "Izin menghapus artikel" },
+    { name: "experience.create", description: "Izin membuat riwayat kerja" },
+    { name: "experience.update", description: "Izin mengubah riwayat kerja" },
+    { name: "experience.delete", description: "Izin menghapus riwayat kerja" },
+    { name: "education.manage", description: "Izin mengatur data pendidikan" },
+    { name: "language.manage", description: "Izin mengatur data bahasa" },
+    { name: "skill.manage", description: "Izin mengatur data skill" },
+    { name: "certification.manage", description: "Izin mengatur data sertifikasi" },
+    { name: "company.manage", description: "Izin mengelola data company" },
+    { name: "frontend_settings.manage", description: "Izin mengatur konfigurasi website frontend" },
+    { name: "experience.manage", description: "Izin legacy untuk kompatibilitas lama" },
+    { name: "user.manage", description: "Izin legacy untuk manajemen pengguna admin" },
   ];
 
   console.log("├─ Seeding permissions...");
   for (const perm of permissionsData) {
     await prisma.permission.upsert({
       where: { name: perm.name },
-      update: {},
+      update: { description: perm.description },
       create: perm,
     });
   }
@@ -44,27 +61,99 @@ async function main() {
   // ==========================================
   console.log("├─ Seeding roles...");
 
-  const allPermission = await prisma.permission.findUnique({
-    where: { name: "all" },
+  const allPermissions = await prisma.permission.findMany({
+    select: { id: true, name: true },
   });
 
-  const connectPermission = allPermission ? [{ id: allPermission.id }] : [];
+  const permissionIdByName = new Map(allPermissions.map((p) => [p.name, p.id]));
 
-  const adminRole = await prisma.role.upsert({
-    where: { name: "ADMIN" },
-    update: {
-      permissions: {
-        set: connectPermission,
-      },
+  const resolvePermissionIds = (names: string[]) => {
+    return names
+      .map((name) => permissionIdByName.get(name))
+      .filter((id): id is number => typeof id === "number")
+      .map((id) => ({ id }));
+  };
+
+  const allPermissionNames = allPermissions.map((p) => p.name);
+
+  const roleDefinitions: Array<{ name: string; description: string; permissionNames: string[] }> = [
+    {
+      name: "SUPER ADMIN",
+      description: "Akses penuh seluruh modul dan konfigurasi RBAC",
+      permissionNames: allPermissionNames,
     },
-    create: {
+    {
       name: "ADMIN",
-      description: "Administrator utama dengan kendali penuh",
-      permissions: {
-        connect: connectPermission,
-      },
+      description: "Administrator operasional",
+      permissionNames: [
+        "user.read",
+        "user.create",
+        "user.update",
+        "user.delete",
+        "portfolio.create",
+        "portfolio.update",
+        "portfolio.delete",
+        "article.create",
+        "article.update",
+        "article.delete",
+        "experience.create",
+        "experience.update",
+        "experience.delete",
+        "education.manage",
+        "language.manage",
+        "skill.manage",
+        "certification.manage",
+        "company.manage",
+        "frontend_settings.manage",
+      ],
     },
+    {
+      name: "EDITOR",
+      description: "Editor konten tanpa akses manajemen user/role",
+      permissionNames: [
+        "portfolio.create",
+        "portfolio.update",
+        "article.create",
+        "article.update",
+        "experience.create",
+        "experience.update",
+        "education.manage",
+        "language.manage",
+        "skill.manage",
+        "certification.manage",
+        "frontend_settings.manage",
+      ],
+    },
+  ];
+
+  for (const roleDef of roleDefinitions) {
+    const permissions = resolvePermissionIds(roleDef.permissionNames);
+    await prisma.role.upsert({
+      where: { name: roleDef.name },
+      update: {
+        description: roleDef.description,
+        permissions: {
+          set: permissions,
+        },
+      },
+      create: {
+        name: roleDef.name,
+        description: roleDef.description,
+        permissions: {
+          connect: permissions,
+        },
+      },
+    });
+  }
+
+  const superAdminRole = await prisma.role.findUnique({
+    where: { name: "SUPER ADMIN" },
+    select: { id: true },
   });
+
+  if (!superAdminRole) {
+    throw new Error("SUPER ADMIN role gagal disiapkan saat seeding.");
+  }
 
   // ==========================================
   // 3) SEED USER ADMIN (SINKRONISASI DATABASE)
@@ -76,14 +165,29 @@ async function main() {
     where: { email: adminEmail },
     update: {
       password: hashed,
-      roleId: adminRole.id,
+      roleId: superAdminRole.id,
       isActive: true,
     },
     create: {
       email: adminEmail,
       password: hashed,
       name: "Admin FrimeCraft",
-      roleId: adminRole.id,
+      roleId: superAdminRole.id,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "admin@frimecraft.com" },
+    update: {
+      roleId: superAdminRole.id,
+      isActive: true,
+    },
+    create: {
+      email: "admin@frimecraft.com",
+      password: hashed,
+      name: "Admin FrimeCraft",
+      roleId: superAdminRole.id,
       isActive: true,
     },
   });

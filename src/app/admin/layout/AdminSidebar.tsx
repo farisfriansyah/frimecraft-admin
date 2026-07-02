@@ -10,6 +10,7 @@ import {
   User,
   Award,
   FileText,
+  ShieldCheck,
   LogOut,
   Menu,
   X,
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: User },
   { href: "/admin/certifications", label: "Certifications", icon: Award },
   { href: "/admin/articles", label: "Articles", icon: FileText },
+  { href: "/admin/rbac-debug", label: "RBAC Debug", icon: ShieldCheck },
 ];
 
 export default function AdminSidebar() {

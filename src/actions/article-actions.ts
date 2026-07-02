@@ -2,8 +2,7 @@
 "use server";
 
 import { db } from "@/src/lib/prisma";
-import { getSession } from "@/src/lib/session";
-import { hasPermission } from "@/src/lib/rbac";
+import { guardActionPermission } from "@/src/lib/security/guards";
 import { revalidatePath } from "next/cache";
 import { writeFile, mkdir } from "fs/promises";
 import fs from "fs/promises";
@@ -40,11 +39,8 @@ async function deletePhysicalFile(imageUrl: string | null) {
 }
 
 export async function createArticleAction(formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) throw new Error("Unauthorized");
-
-  const canCreate = await hasPermission(session.userId, "article.create");
-  if (!canCreate) throw new Error("Akses ditolak");
+  const guard = await guardActionPermission("article.create");
+  if (!guard.ok) throw new Error(guard.error);
 
   const title = (formData.get("title") as string) || "Untitled";
   let slug = (formData.get("slug") as string) || "";
@@ -82,7 +78,7 @@ export async function createArticleAction(formData: FormData) {
       seoDescription,
       keywords,
       tags,
-      authorId: session.userId,
+      authorId: guard.userId,
     },
   });
 
@@ -92,11 +88,8 @@ export async function createArticleAction(formData: FormData) {
 }
 
 export async function updateArticleAction(id: number, formData: FormData) {
-  const session = await getSession();
-  if (!session?.userId) throw new Error("Unauthorized");
-
-  const canUpdate = await hasPermission(session.userId, "article.update");
-  if (!canUpdate) throw new Error("Akses ditolak");
+  const guard = await guardActionPermission("article.update");
+  if (!guard.ok) throw new Error(guard.error);
 
   const title = (formData.get("title") as string) || "Untitled";
   let slug = (formData.get("slug") as string) || "";
@@ -150,11 +143,8 @@ export async function updateArticleAction(id: number, formData: FormData) {
 
 export async function deleteArticleAction(id: number | string) {
   try {
-    const session = await getSession();
-    if (!session?.userId) return { success: false, error: "Unauthorized" };
-
-    const canDelete = await hasPermission(session.userId, "article.delete");
-    if (!canDelete) return { success: false, error: "Akses ditolak" };
+    const guard = await guardActionPermission("article.delete");
+    if (!guard.ok) return { success: false, error: guard.error };
 
     const articleId = Number(id);
     if (isNaN(articleId)) return { success: false, error: "ID tidak valid" };

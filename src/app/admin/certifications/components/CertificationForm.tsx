@@ -15,7 +15,9 @@ import { createCertificationAction, updateCertificationAction } from "@/src/acti
 
 const schema = z.object({
   title: z.string().min(1, "Judul wajib diisi"),
+  titleEn: z.string().optional(),
   issuer: z.string().min(1, "Penerbit wajib diisi"),
+  issuerEn: z.string().optional(),
   issueDate: z.string().min(1, "Tanggal wajib diisi"),
   url: z.string().url().optional().or(z.literal("")),
 });
@@ -35,10 +37,12 @@ export default function CertificationForm({ certification, mode }: { certificati
     resolver: zodResolver(schema) as any,
     defaultValues: certification ? {
       title: certification.title,
+      titleEn: (certification as any).titleEn || "",
       issuer: certification.issuer || "", // Convert null to ""
+      issuerEn: (certification as any).issuerEn || "",
       issueDate: certification.issueDate ? certification.issueDate.toISOString().split("T")[0] : "", // Handle date null
       url: certification.url || "", // Convert null to ""
-    } : { title: "", issuer: "", issueDate: "", url: "" },
+    } : { title: "", titleEn: "", issuer: "", issuerEn: "", issueDate: "", url: "" },
   });
 
   // Perbaikan: Tipe data eksplisit untuk data
@@ -88,11 +92,21 @@ export default function CertificationForm({ certification, mode }: { certificati
             <Input {...register("title")} placeholder="Contoh: AWS Solutions Architect" />
             {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
           </div>
+
+          <div className="space-y-2">
+            <Label>Judul Sertifikasi (EN)</Label>
+            <Input {...register("titleEn")} placeholder="Example: AWS Solutions Architect" />
+          </div>
           
           <div className="space-y-2">
             <Label>Penerbit (Issuer) <span className="text-destructive">*</span></Label>
             <Input {...register("issuer")} placeholder="Contoh: Amazon Web Services" />
             {errors.issuer && <p className="text-sm text-destructive">{errors.issuer.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Issuer (EN)</Label>
+            <Input {...register("issuerEn")} placeholder="Example: Amazon Web Services" />
           </div>
           
           <div className="space-y-2">

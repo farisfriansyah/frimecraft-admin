@@ -13,9 +13,11 @@ export async function createSkillAction(formData: FormData) {
       data: {
         userId: guard.userId,
         name: formData.get("name") as string,
+        nameEn: (formData.get("nameEn") as string) || null,
         slug: (formData.get("slug") as string) || null,
         level: Number(formData.get("level")),
         notes: (formData.get("notes") as string) || null,
+        notesEn: (formData.get("notesEn") as string) || null,
         seoTitle: (formData.get("seoTitle") as string) || null,
         seoDescription: (formData.get("seoDescription") as string) || null,
         keywords: (formData.get("keywords") as string) || null,
@@ -38,9 +40,11 @@ export async function updateSkillAction(id: number, formData: FormData) {
       where: { id, userId: guard.userId },
       data: {
         name: formData.get("name") as string,
+        nameEn: (formData.get("nameEn") as string) || null,
         slug: (formData.get("slug") as string) || null,
         level: Number(formData.get("level")),
         notes: (formData.get("notes") as string) || null,
+        notesEn: (formData.get("notesEn") as string) || null,
         seoTitle: (formData.get("seoTitle") as string) || null,
         seoDescription: (formData.get("seoDescription") as string) || null,
         keywords: (formData.get("keywords") as string) || null,

@@ -18,7 +18,9 @@ export async function createCertificationAction(formData: FormData) {
       data: { 
         userId: guard.userId,
         title, 
+        titleEn: (formData.get("titleEn") as string) || null,
         issuer, 
+        issuerEn: (formData.get("issuerEn") as string) || null,
         issueDate, 
         url 
       },
@@ -50,7 +52,14 @@ export async function updateCertificationAction(id: string, formData: FormData) 
         id: certificationId, // Gunakan variabel number
         userId: guard.userId 
       },
-      data: { title, issuer, issueDate, url },
+      data: {
+        title,
+        titleEn: (formData.get("titleEn") as string) || null,
+        issuer,
+        issuerEn: (formData.get("issuerEn") as string) || null,
+        issueDate,
+        url,
+      },
     });
 
     revalidatePath("/admin/certifications");

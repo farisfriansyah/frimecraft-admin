@@ -16,6 +16,17 @@ type FrontendSettingsPayload = {
   seoKeywords: string;
   canonicalUrl: string;
   ogImageUrl: string;
+  ogImageAlt: string;
+  organizationName: string;
+  organizationLogoUrl: string;
+  defaultAuthorName: string;
+  defaultLocale: string;
+  twitterHandle: string;
+  socialProfileUrls: string;
+  clarityProjectId: string;
+  googleSiteVerification: string;
+  bingSiteVerification: string;
+  themeColor: string;
   footerText: string;
 };
 
@@ -27,6 +38,17 @@ const initialState: FrontendSettingsPayload = {
   seoKeywords: "",
   canonicalUrl: "",
   ogImageUrl: "",
+  ogImageAlt: "",
+  organizationName: "",
+  organizationLogoUrl: "",
+  defaultAuthorName: "",
+  defaultLocale: "id_ID",
+  twitterHandle: "",
+  socialProfileUrls: "",
+  clarityProjectId: "",
+  googleSiteVerification: "",
+  bingSiteVerification: "",
+  themeColor: "#2f55d4",
   footerText: "",
 };
 
@@ -57,6 +79,17 @@ export default function FrontendSettingsForm() {
           seoKeywords: data.seoKeywords || "",
           canonicalUrl: data.canonicalUrl || "",
           ogImageUrl: data.ogImageUrl || "",
+          ogImageAlt: data.ogImageAlt || "",
+          organizationName: data.organizationName || "",
+          organizationLogoUrl: data.organizationLogoUrl || "",
+          defaultAuthorName: data.defaultAuthorName || "",
+          defaultLocale: data.defaultLocale || "id_ID",
+          twitterHandle: data.twitterHandle || "",
+          socialProfileUrls: data.socialProfileUrls || "",
+          clarityProjectId: data.clarityProjectId || "",
+          googleSiteVerification: data.googleSiteVerification || "",
+          bingSiteVerification: data.bingSiteVerification || "",
+          themeColor: data.themeColor || "#2f55d4",
           footerText: data.footerText || "",
         });
       } catch {
@@ -141,6 +174,65 @@ export default function FrontendSettingsForm() {
           <div className="grid gap-2">
             <Label htmlFor="ogImageUrl">OG Image URL</Label>
             <Input id="ogImageUrl" value={form.ogImageUrl} onChange={(e) => handleChange("ogImageUrl", e.target.value)} disabled={loading || saving} />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="ogImageAlt">OG Image Alt</Label>
+            <Input id="ogImageAlt" value={form.ogImageAlt} onChange={(e) => handleChange("ogImageAlt", e.target.value)} disabled={loading || saving} />
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2 md:gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="organizationName">Organization Name</Label>
+              <Input id="organizationName" value={form.organizationName} onChange={(e) => handleChange("organizationName", e.target.value)} disabled={loading || saving} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="organizationLogoUrl">Organization Logo URL</Label>
+              <Input id="organizationLogoUrl" value={form.organizationLogoUrl} onChange={(e) => handleChange("organizationLogoUrl", e.target.value)} disabled={loading || saving} />
+            </div>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2 md:gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="defaultAuthorName">Default Author Name</Label>
+              <Input id="defaultAuthorName" value={form.defaultAuthorName} onChange={(e) => handleChange("defaultAuthorName", e.target.value)} disabled={loading || saving} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="defaultLocale">Default Locale</Label>
+              <Input id="defaultLocale" value={form.defaultLocale} onChange={(e) => handleChange("defaultLocale", e.target.value)} disabled={loading || saving} placeholder="id_ID" />
+            </div>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2 md:gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="twitterHandle">Twitter/X Handle</Label>
+              <Input id="twitterHandle" value={form.twitterHandle} onChange={(e) => handleChange("twitterHandle", e.target.value)} disabled={loading || saving} placeholder="@frimecraft" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="themeColor">Theme Color</Label>
+              <Input id="themeColor" value={form.themeColor} onChange={(e) => handleChange("themeColor", e.target.value)} disabled={loading || saving} placeholder="#2f55d4" />
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="clarityProjectId">Microsoft Clarity Project ID</Label>
+            <Input id="clarityProjectId" value={form.clarityProjectId} onChange={(e) => handleChange("clarityProjectId", e.target.value)} disabled={loading || saving} placeholder="contoh: abcd1234ef" />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="socialProfileUrls">Social Profile URLs</Label>
+            <Textarea id="socialProfileUrls" rows={3} value={form.socialProfileUrls} onChange={(e) => handleChange("socialProfileUrls", e.target.value)} disabled={loading || saving} placeholder="Pisahkan dengan koma: https://x.com/..., https://www.linkedin.com/in/..." />
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2 md:gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="googleSiteVerification">Google Site Verification</Label>
+              <Input id="googleSiteVerification" value={form.googleSiteVerification} onChange={(e) => handleChange("googleSiteVerification", e.target.value)} disabled={loading || saving} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="bingSiteVerification">Bing Site Verification</Label>
+              <Input id="bingSiteVerification" value={form.bingSiteVerification} onChange={(e) => handleChange("bingSiteVerification", e.target.value)} disabled={loading || saving} />
+            </div>
           </div>
 
           <div className="grid gap-2">

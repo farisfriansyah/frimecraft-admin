@@ -2,6 +2,7 @@
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import { getSessionSecretBytes } from '@/src/lib/security/config';
+import { getAdminCookiePath } from '@/src/lib/app-config';
 
 const secret = getSessionSecretBytes();
 
@@ -22,7 +23,7 @@ export async function createSession(userId: number, role: string) {
   cookieStore.set('session', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    path: '/',
+    path: getAdminCookiePath(),
     sameSite: 'lax',
     expires,
   });
@@ -58,5 +59,11 @@ export async function getSession() {
  */
 export async function destroySession() {
   const cookieStore = await cookies();
-  cookieStore.delete('session');
+  cookieStore.set('session', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: getAdminCookiePath(),
+    sameSite: 'lax',
+    expires: new Date(0),
+  });
 }

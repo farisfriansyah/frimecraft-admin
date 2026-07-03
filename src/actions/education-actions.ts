@@ -16,8 +16,11 @@ export async function createEducationAction(formData: FormData) {
       data: {
         userId: guard.userId,
         institution: formData.get("institution") as string,
+        institutionEn: (formData.get("institutionEn") as string) || null,
         degree: (formData.get("degree") as string) || null,
+        degreeEn: (formData.get("degreeEn") as string) || null,
         description: (formData.get("description") as string) || null,
+        descriptionEn: (formData.get("descriptionEn") as string) || null,
         slug: (formData.get("slug") as string) || null,
         seoTitle: (formData.get("seoTitle") as string) || null,
         seoDescription: (formData.get("seoDescription") as string) || null,
@@ -47,8 +50,11 @@ export async function updateEducationAction(id: number, formData: FormData) {
       where: { id, userId: guard.userId },
       data: {
         institution: formData.get("institution") as string,
+        institutionEn: (formData.get("institutionEn") as string) || null,
         degree: (formData.get("degree") as string) || null,
+        degreeEn: (formData.get("degreeEn") as string) || null,
         description: (formData.get("description") as string) || null,
+        descriptionEn: (formData.get("descriptionEn") as string) || null,
         slug: (formData.get("slug") as string) || null,
         seoTitle: (formData.get("seoTitle") as string) || null,
         seoDescription: (formData.get("seoDescription") as string) || null,

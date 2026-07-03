@@ -1,8 +1,13 @@
 // next.config.ts
 import type { NextConfig } from "next";
 
+const basePath = process.env.APP_BASE_PATH && process.env.APP_BASE_PATH !== "/"
+  ? process.env.APP_BASE_PATH.replace(/\/$/, "")
+  : "/frime-admin";
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  basePath,
+  output: "standalone",
   images: {
     remotePatterns: [
       {
@@ -12,6 +17,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'frimecraft.com',
       }
     ],
   },

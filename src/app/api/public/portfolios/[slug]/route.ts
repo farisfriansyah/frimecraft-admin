@@ -9,6 +9,10 @@ type Context = {
   }>;
 };
 
+function normalizeLang(value: string | null) {
+  return value?.toLowerCase() === "en" ? "en" : "id";
+}
+
 export async function GET(request: NextRequest, context: Context) {
   const ip = getClientIp(request);
   const rate = await checkRateLimit(`public:portfolios:detail:${ip}`, {
@@ -37,6 +41,7 @@ export async function GET(request: NextRequest, context: Context) {
   }
 
   const { slug } = await context.params;
+  const lang = normalizeLang(request.nextUrl.searchParams.get("lang"));
 
   const portfolio = await db.portfolio.findFirst({
     where: {
@@ -46,16 +51,22 @@ export async function GET(request: NextRequest, context: Context) {
     select: {
       id: true,
       title: true,
+      titleEn: true,
       slug: true,
       sortNumber: true,
       description: true,
+      descriptionEn: true,
       imageUrl: true,
       projectUrl: true,
       tags: true,
+      tagsEn: true,
       featured: true,
       seoTitle: true,
+      seoTitleEn: true,
       seoDescription: true,
+      seoDescriptionEn: true,
       keywords: true,
+      keywordsEn: true,
       createdAt: true,
       updatedAt: true,
       user: {
@@ -83,7 +94,22 @@ export async function GET(request: NextRequest, context: Context) {
   return NextResponse.json({
     success: true,
     data: {
-      ...portfolio,
+      id: portfolio.id,
+      title: lang === "en" ? portfolio.titleEn || portfolio.title : portfolio.title,
+      slug: portfolio.slug,
+      sortNumber: portfolio.sortNumber,
+      description: lang === "en" ? portfolio.descriptionEn || portfolio.description : portfolio.description,
+      imageUrl: portfolio.imageUrl,
+      projectUrl: portfolio.projectUrl,
+      tags: lang === "en" ? portfolio.tagsEn || portfolio.tags : portfolio.tags,
+      featured: portfolio.featured,
+      seoTitle: lang === "en" ? portfolio.seoTitleEn || portfolio.seoTitle || portfolio.titleEn || portfolio.title : portfolio.seoTitle,
+      seoDescription: lang === "en" ? portfolio.seoDescriptionEn || portfolio.seoDescription || portfolio.descriptionEn || portfolio.description : portfolio.seoDescription,
+      keywords: lang === "en" ? portfolio.keywordsEn || portfolio.keywords : portfolio.keywords,
+      createdAt: portfolio.createdAt,
+      updatedAt: portfolio.updatedAt,
+      workFor: portfolio.workFor,
+      workAt: portfolio.workAt,
       authorName: portfolio.user?.name || null,
     },
   });

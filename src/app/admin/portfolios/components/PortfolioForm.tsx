@@ -21,19 +21,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/src/app/ui/card";
 
 const schema = z.object({
   title: z.string().min(3, "Minimal 3 karakter"),
+  titleEn: z.string().optional(),
   slug: z.string().optional(),
   sortNumber: z.number().int().nullable().optional(),
   description: z.string().optional(),
+  descriptionEn: z.string().optional(),
   image: z.instanceof(File).optional(),
   projectUrl: z.string().url().optional().or(z.literal("")),
   workForId: z.number().nullable(),
   workAtId: z.number().nullable(),
   tags: z.array(z.string()),
+  tagsEn: z.array(z.string()),
   featured: z.boolean(),
   isDisabled: z.boolean(),
   seoTitle: z.string().max(60, "Maksimal 60 karakter untuk SEO").optional(),
+  seoTitleEn: z.string().max(60, "Maksimal 60 karakter untuk SEO").optional(),
   seoDescription: z.string().max(160, "Maksimal 160 karakter untuk SEO").optional(),
+  seoDescriptionEn: z.string().max(160, "Maksimal 160 karakter untuk SEO").optional(),
   keywords: z.string().max(300, "Maksimal 300 karakter").optional(),
+  keywordsEn: z.string().max(300, "Maksimal 300 karakter").optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -51,19 +57,25 @@ type Props = {
   portfolio?: {
     id: number;
     title: string;
+    titleEn?: string | null;
     slug?: string | null;
     sortNumber?: number | null;
     description?: string | null;
+    descriptionEn?: string | null;
     imageUrl?: string | null;
     projectUrl?: string | null;
     workForId?: number | null;
     workAtId?: number | null;
     tags?: string | null;
+    tagsEn?: string | null;
     featured: boolean;
     isDisabled: boolean;
     seoTitle?: string | null;
+    seoTitleEn?: string | null;
     seoDescription?: string | null;
+    seoDescriptionEn?: string | null;
     keywords?: string | null;
+    keywordsEn?: string | null;
   };
   companies: { id: number; name: string }[];
   mode: "create" | "edit";
@@ -84,28 +96,40 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
     defaultValues: portfolio
       ? {
           title: portfolio.title,
+          titleEn: portfolio.titleEn || "",
           slug: portfolio.slug || "",
           sortNumber: portfolio.sortNumber ?? null,
           description: portfolio.description || "",
+          descriptionEn: portfolio.descriptionEn || "",
           projectUrl: portfolio.projectUrl || "",
           workForId: portfolio.workForId ?? null,
           workAtId: portfolio.workAtId ?? null,
           tags: portfolio.tags ? portfolio.tags.split(",").map((t) => t.trim()) : [],
+          tagsEn: portfolio.tagsEn ? portfolio.tagsEn.split(",").map((t) => t.trim()) : [],
           featured: portfolio.featured,
           isDisabled: portfolio.isDisabled,
           seoTitle: portfolio.seoTitle || "",
+          seoTitleEn: portfolio.seoTitleEn || "",
           seoDescription: portfolio.seoDescription || "",
+          seoDescriptionEn: portfolio.seoDescriptionEn || "",
           keywords: portfolio.keywords || "",
+          keywordsEn: portfolio.keywordsEn || "",
         }
       : {
           tags: [],
+          tagsEn: [],
           featured: false,
           isDisabled: false,
           slug: "",
           sortNumber: null,
+          descriptionEn: "",
+          titleEn: "",
           seoTitle: "",
+          seoTitleEn: "",
           seoDescription: "",
+          seoDescriptionEn: "",
           keywords: "",
+          keywordsEn: "",
         },
   });
 
@@ -201,6 +225,11 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="titleEn">Judul Project (EN)</Label>
+              <Input id="titleEn" {...register("titleEn")} placeholder="English project title" className="text-lg font-medium h-12" />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="sortNumber">Sort Number</Label>
               <Input
                 id="sortNumber"
@@ -219,6 +248,11 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
             <div className="space-y-3">
               <Label className="text-base font-medium">Deskripsi</Label>
               <RichTextEditor value={watch("description") || ""} onChange={(v) => setValue("description", v)} />
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Description (EN)</Label>
+              <RichTextEditor value={watch("descriptionEn") || ""} onChange={(v) => setValue("descriptionEn", v)} />
             </div>
 
             {/* Project URL */}
@@ -261,6 +295,11 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
               <TagsInput value={watch("tags") || []} onChange={(tags) => setValue("tags", tags)} />
             </div>
 
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Tags (EN)</Label>
+              <TagsInput value={watch("tagsEn") || []} onChange={(tags) => setValue("tagsEn", tags)} />
+            </div>
+
             {/* SEO & Meta Tags */}
             <Card>
               <CardHeader>
@@ -281,6 +320,11 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="seoTitleEn">SEO Title (EN)</Label>
+                  <Input id="seoTitleEn" {...register("seoTitleEn")} placeholder="English SEO title" />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="seoDescription">Meta Description</Label>
                   <textarea
                     id="seoDescription"
@@ -296,6 +340,17 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="seoDescriptionEn">Meta Description (EN)</Label>
+                  <textarea
+                    id="seoDescriptionEn"
+                    {...register("seoDescriptionEn")}
+                    placeholder="English meta description"
+                    rows={2}
+                    className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="keywords">Keywords / Kata Kunci</Label>
                   <textarea
                     id="keywords"
@@ -307,6 +362,17 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>{keywordsLength}/300 karakter</span>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="keywordsEn">Keywords (EN)</Label>
+                  <textarea
+                    id="keywordsEn"
+                    {...register("keywordsEn")}
+                    placeholder="English keywords, comma separated"
+                    rows={2}
+                    className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+                  />
                 </div>
               </CardContent>
             </Card>

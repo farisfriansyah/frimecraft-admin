@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import { getSessionSecretBytes } from './src/lib/security/config';
+import { withAdminBasePath } from './src/lib/app-config';
 
 const SECRET = getSessionSecretBytes();
 
@@ -14,7 +15,7 @@ export async function middleware(request: NextRequest) {
     const token = request.cookies.get('session')?.value;
 
     if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(new URL(withAdminBasePath('/login'), request.url));
     }
 
     try {
@@ -31,7 +32,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     } catch (err) {
       // Jika token expired, rusak, atau userId <= 0, arahkan ke login
-      const response = NextResponse.redirect(new URL('/login', request.url));
+      const response = NextResponse.redirect(new URL(withAdminBasePath('/login'), request.url));
       // Hapus cookie rusak agar browser bersih
       response.cookies.delete('session');
       return response;
@@ -44,7 +45,7 @@ export async function middleware(request: NextRequest) {
     if (token) {
       try {
         await jwtVerify(token, SECRET);
-        return NextResponse.redirect(new URL('/admin', request.url));
+        return NextResponse.redirect(new URL(withAdminBasePath('/admin'), request.url));
       } catch {
         return NextResponse.next();
       }

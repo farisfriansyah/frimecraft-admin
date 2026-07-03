@@ -222,6 +222,7 @@ async function main() {
           userId,
           companyId: studio.id,
           position: "Lead UX/UI Designer",
+          positionEn: "Lead UX/UI Designer",
           location: "Jakarta, Indonesia",
           startMonth: 1,
           startYear: 2020,
@@ -229,12 +230,14 @@ async function main() {
           endMonth: null,
           endYear: null,
           tags: ["UX", "UI", "Figma"],
-          description: "Mendesain produk SaaS, dashboard, dan landing pages untuk klien enterprise."
+          description: "Mendesain produk SaaS, dashboard, dan landing pages untuk klien enterprise.",
+          descriptionEn: "Designing SaaS products, dashboards, and landing pages for enterprise clients."
         },
         {
           userId,
           companyId: startup.id,
           position: "Product Designer",
+          positionEn: "Product Designer",
           location: "Remote",
           startMonth: 5,
           startYear: 2018,
@@ -242,7 +245,8 @@ async function main() {
           endMonth: 12,
           endYear: 2019,
           tags: ["Product", "Design"],
-          description: "Membentuk alur pengguna, prototyping, dan desain visual."
+          description: "Membentuk alur pengguna, prototyping, dan desain visual.",
+          descriptionEn: "Shaping user flows, prototyping, and visual design execution."
         }
       ],
     });
@@ -261,10 +265,13 @@ async function main() {
         {
           userId,
           institution: "Institut Teknologi Contoh",
+          institutionEn: "Example Institute of Technology",
           degree: "S1 Desain Komunikasi Visual",
+          degreeEn: "Bachelor of Visual Communication Design",
           startDate: new Date("2013-08-01"),
           endDate: new Date("2017-06-01"),
-          description: "Konsentrasi UI/UX dan multimedia."
+          description: "Konsentrasi UI/UX dan multimedia.",
+          descriptionEn: "Focused on UI/UX and multimedia."
         }
       ],
     });
@@ -280,11 +287,11 @@ async function main() {
   if (skillsCount === 0) {
     await prisma.skill.createMany({
       data: [
-        { userId, name: "Figma", level: 90 },
-        { userId, name: "Wireframing", level: 85 },
-        { userId, name: "Prototyping", level: 85 },
-        { userId, name: "Framer", level: 75 },
-        { userId, name: "HTML/CSS", level: 70 }
+        { userId, name: "Figma", nameEn: "Figma", level: 90 },
+        { userId, name: "Wireframing", nameEn: "Wireframing", level: 85 },
+        { userId, name: "Prototyping", nameEn: "Prototyping", level: 85 },
+        { userId, name: "Framer", nameEn: "Framer", level: 75 },
+        { userId, name: "HTML/CSS", nameEn: "HTML/CSS", level: 70 }
       ],
     });
     console.log("├─ ✓ Skills populated.");
@@ -318,7 +325,9 @@ async function main() {
         {
           userId,
           title: "Certified UX Designer",
+          titleEn: "Certified UX Designer",
           issuer: "Design Institute",
+          issuerEn: "Design Institute",
           issueDate: new Date("2021-06-01"),
           url: ""
         }
@@ -339,19 +348,31 @@ async function main() {
         {
           userId,
           title: "Product Dashboard UI",
+          titleEn: "Product Dashboard UI",
           description: "Redesign dashboard untuk SaaS manajemen tugas.",
+          descriptionEn: "Dashboard redesign for a task management SaaS product.",
           imageUrl: null,
           projectUrl: "https://example.com/project/admin",
           tags: "dashboard,saas,ui",
+          tagsEn: "dashboard,saas,ui",
+          seoTitleEn: "Product Dashboard UI",
+          seoDescriptionEn: "Dashboard redesign for a task management SaaS product.",
+          keywordsEn: "dashboard, saas, ui",
           featured: true
         },
         {
           userId,
           title: "E-commerce Landing Page",
+          titleEn: "E-commerce Landing Page",
           description: "Landing page konversi tinggi untuk brand FMCG.",
+          descriptionEn: "A high-converting landing page for an FMCG brand.",
           imageUrl: null,
           projectUrl: "https://example.com/project/landing",
           tags: "landing,ecommerce,ui",
+          tagsEn: "landing,ecommerce,ui",
+          seoTitleEn: "E-commerce Landing Page",
+          seoDescriptionEn: "A high-converting landing page for an FMCG brand.",
+          keywordsEn: "landing page, ecommerce, ui",
           featured: false
         }
       ],
@@ -360,6 +381,53 @@ async function main() {
   } else {
     console.log("├─ ⚠ Portfolios already setup, skipping.");
   }
+
+  // ==========================================
+  // 10) SEED FRONTEND SETTINGS
+  // ==========================================
+  await prisma.frontendSetting.upsert({
+    where: { key: "default" },
+    update: {
+      siteTitle: "Frimecraft",
+      siteDescription: "Frimecraft digital profile, portfolio showcase, and journal.",
+      seoTitle: "Frimecraft",
+      seoDescription: "Frimecraft digital profile, portfolio showcase, and journal for product design and frontend execution.",
+      seoKeywords: "frimecraft, portfolio, articles, frontend developer, ui ux, product design",
+      canonicalUrl: "https://frimecraft.com",
+      ogImageUrl: "https://frimecraft.com/assets/img/main/hero.svg",
+      ogImageAlt: "Frimecraft hero visual",
+      organizationName: "Frimecraft Studio",
+      organizationLogoUrl: "https://frimecraft.com/assets/img/main/hero.svg",
+      defaultAuthorName: "Faris Friansyah",
+      defaultLocale: "id_ID",
+      twitterHandle: "@frimecraft",
+      socialProfileUrls: "https://www.linkedin.com,https://x.com/frimecraft",
+      clarityProjectId: null,
+      themeColor: "#2f55d4",
+      footerText: "Frimecraft. Build clear products with sharp execution.",
+    },
+    create: {
+      key: "default",
+      siteTitle: "Frimecraft",
+      siteDescription: "Frimecraft digital profile, portfolio showcase, and journal.",
+      seoTitle: "Frimecraft",
+      seoDescription: "Frimecraft digital profile, portfolio showcase, and journal for product design and frontend execution.",
+      seoKeywords: "frimecraft, portfolio, articles, frontend developer, ui ux, product design",
+      canonicalUrl: "https://frimecraft.com",
+      ogImageUrl: "https://frimecraft.com/assets/img/main/hero.svg",
+      ogImageAlt: "Frimecraft hero visual",
+      organizationName: "Frimecraft Studio",
+      organizationLogoUrl: "https://frimecraft.com/assets/img/main/hero.svg",
+      defaultAuthorName: "Faris Friansyah",
+      defaultLocale: "id_ID",
+      twitterHandle: "@frimecraft",
+      socialProfileUrls: "https://www.linkedin.com,https://x.com/frimecraft",
+      clarityProjectId: null,
+      themeColor: "#2f55d4",
+      footerText: "Frimecraft. Build clear products with sharp execution.",
+    },
+  });
+  console.log("├─ ✓ Frontend SEO settings ensured.");
 
   console.log("🌱 Seeding finished successfully.");
 }

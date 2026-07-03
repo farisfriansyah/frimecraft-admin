@@ -22,6 +22,7 @@ import { WorkExperience, Company } from "@prisma/client";
 
 const schema = z.object({
   position: z.string().min(2, "Posisi wajib diisi"),
+  positionEn: z.string().nullable().optional(),
   slug: z.string().optional(),
   companyId: z.number().nullable(),
   location: z.string().nullable().optional(),
@@ -31,6 +32,7 @@ const schema = z.object({
   endYear: z.coerce.number().min(1900).nullable().optional(),
   isCurrent: z.boolean().default(false),
   description: z.string().nullable().optional(),
+  descriptionEn: z.string().nullable().optional(),
   tags: z.array(z.string()),
   seoTitle: z.string().max(60, "Maksimal 60 karakter untuk SEO").optional(),
   seoDescription: z.string().max(160, "Maksimal 160 karakter untuk SEO").optional(),
@@ -75,6 +77,7 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
     resolver: zodResolver(schema) as any,
     defaultValues: experience ? {
       position: experience.position,
+      positionEn: (experience as any).positionEn || "",
       slug: experience.slug || "",
       companyId: experience.companyId,
       location: experience.location,
@@ -84,12 +87,14 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
       endYear: experience.endYear,
       isCurrent: experience.isCurrent,
       description: experience.description,
+      descriptionEn: (experience as any).descriptionEn || "",
       tags: experience.tags ?? [],
       seoTitle: experience.seoTitle || "",
       seoDescription: experience.seoDescription || "",
       keywords: experience.keywords || "",
     } : {
       position: "",
+      positionEn: "",
       slug: "",
       companyId: null,
       location: "",
@@ -99,6 +104,7 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
       endYear: null,
       isCurrent: false,
       description: "",
+      descriptionEn: "",
       tags: [],
       seoTitle: "",
       seoDescription: "",
@@ -179,6 +185,10 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
               <Input {...register("slug")} placeholder="slug-posisi" className="font-mono" />
               <p className="text-xs text-muted-foreground">Auto-generated dari posisi, tapi bisa diedit</p>
             </div>
+            <div className="space-y-2 col-span-2">
+              <Label>Posisi (EN)</Label>
+              <Input {...register("positionEn")} placeholder="English position title" />
+            </div>
             <div className="space-y-2">
               <Label>Perusahaan</Label>
               <CompanySelect companies={companies} value={watch("companyId")} onChange={(id) => setValue("companyId", id)} />
@@ -224,6 +234,17 @@ export default function ExperienceForm({ experience, companies, mode }: Props) {
           <Controller
             control={control}
             name="description"
+            render={({ field }) => (
+              <RichTextEditor value={field.value || ""} onChange={field.onChange} />
+            )}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Description (EN)</Label>
+          <Controller
+            control={control}
+            name="descriptionEn"
             render={({ field }) => (
               <RichTextEditor value={field.value || ""} onChange={field.onChange} />
             )}

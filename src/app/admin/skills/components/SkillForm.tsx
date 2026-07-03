@@ -31,10 +31,12 @@ function generateSlugFromTitle(title: string): string {
 
 const schema = z.object({
   name: z.string().min(1, "Nama skill wajib diisi"),
+  nameEn: z.string().optional(),
   slug: z.string().optional(),
   level: z.number().min(0).max(100),
   category: z.string().min(1, "Kategori wajib dipilih"),
   notes: z.string().nullable().optional(),
+  notesEn: z.string().nullable().optional(),
   seoTitle: z.string().max(60, "Maksimal 60 karakter untuk SEO").optional(),
   seoDescription: z.string().max(160, "Maksimal 160 karakter untuk SEO").optional(),
   keywords: z.string().max(300, "Maksimal 300 karakter").optional(),
@@ -68,20 +70,24 @@ export default function SkillForm({ skill, mode }: Props) {
     resolver: zodResolver(schema) as any,
     defaultValues: skill ? {
       name: skill.name,
+      nameEn: (skill as any).nameEn || "",
       slug: skill.slug || "",
       level: skill.level || 50,
       category: (skill as any).category || "Frontend", 
       notes: skill.notes || "",
+      notesEn: (skill as any).notesEn || "",
       seoTitle: skill.seoTitle || "",
       seoDescription: skill.seoDescription || "",
       keywords: skill.keywords || "",
       tags: skill.tags ? skill.tags.split(",").map((t) => t.trim()) : [],
     } : { 
       name: "", 
+      nameEn: "",
       slug: "",
       level: 50,
       category: "Frontend",
       notes: "",
+      notesEn: "",
       seoTitle: "",
       seoDescription: "",
       keywords: "",
@@ -154,6 +160,11 @@ export default function SkillForm({ skill, mode }: Props) {
           </div>
 
           <div className="space-y-2">
+            <Label>Nama Skill (EN)</Label>
+            <Input {...register("nameEn")} placeholder="Example: React.js" />
+          </div>
+
+          <div className="space-y-2">
             <Label>Kategori</Label>
             <Controller
               control={control}
@@ -207,6 +218,11 @@ export default function SkillForm({ skill, mode }: Props) {
         <div className="space-y-2">
           <Label>Catatan Tambahan</Label>
           <Textarea {...register("notes")} placeholder="Jelaskan pengalaman atau sertifikasi terkait..." />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Additional Notes (EN)</Label>
+          <Textarea {...register("notesEn")} placeholder="Explain relevant experience or certification..." />
         </div>
 
         {/* SEO & Meta Tags */}

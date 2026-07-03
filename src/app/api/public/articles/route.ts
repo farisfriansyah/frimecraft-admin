@@ -9,6 +9,10 @@ function parsePositiveInt(value: string | null, fallback: number) {
   return Math.floor(parsed);
 }
 
+function normalizeLang(value: string | null) {
+  return value?.toLowerCase() === "en" ? "en" : "id";
+}
+
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const rate = await checkRateLimit(`public:articles:${ip}`, {
@@ -41,6 +45,7 @@ export async function GET(request: NextRequest) {
   const pageSize = Math.min(parsePositiveInt(searchParams.get("pageSize"), 9), 30);
   const q = (searchParams.get("q") || "").trim();
   const tag = (searchParams.get("tag") || "").trim();
+  const lang = normalizeLang(searchParams.get("lang"));
   const skip = (page - 1) * pageSize;
 
   const where = {
@@ -49,13 +54,24 @@ export async function GET(request: NextRequest) {
       ? {
           OR: [
             { title: { contains: q, mode: "insensitive" as const } },
+            { titleEn: { contains: q, mode: "insensitive" as const } },
             { excerpt: { contains: q, mode: "insensitive" as const } },
+            { excerptEn: { contains: q, mode: "insensitive" as const } },
             { content: { contains: q, mode: "insensitive" as const } },
+            { contentEn: { contains: q, mode: "insensitive" as const } },
             { tags: { contains: q, mode: "insensitive" as const } },
+            { tagsEn: { contains: q, mode: "insensitive" as const } },
           ],
         }
       : {}),
-    ...(tag ? { tags: { contains: tag, mode: "insensitive" as const } } : {}),
+    ...(tag
+      ? {
+          OR: [
+            { tags: { contains: tag, mode: "insensitive" as const } },
+            { tagsEn: { contains: tag, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
   };
 
   const [total, articles] = await Promise.all([
@@ -68,22 +84,41 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         title: true,
+        titleEn: true,
         slug: true,
         sortNumber: true,
         excerpt: true,
+        excerptEn: true,
         featuredImage: true,
         seoTitle: true,
+        seoTitleEn: true,
         seoDescription: true,
+        seoDescriptionEn: true,
         tags: true,
+        tagsEn: true,
         createdAt: true,
         updatedAt: true,
       },
     }),
   ]);
 
+  const localizedArticles = articles.map((article) => ({
+    id: article.id,
+    title: lang === "en" ? article.titleEn || article.title : article.title,
+    slug: article.slug,
+    sortNumber: article.sortNumber,
+    excerpt: lang === "en" ? article.excerptEn || article.excerpt : article.excerpt,
+    featuredImage: article.featuredImage,
+    seoTitle: lang === "en" ? article.seoTitleEn || article.seoTitle || article.titleEn || article.title : article.seoTitle,
+    seoDescription: lang === "en" ? article.seoDescriptionEn || article.seoDescription || article.excerptEn || article.excerpt : article.seoDescription,
+    tags: lang === "en" ? article.tagsEn || article.tags : article.tags,
+    createdAt: article.createdAt,
+    updatedAt: article.updatedAt,
+  }));
+
   return NextResponse.json({
     success: true,
-    data: articles,
+    data: localizedArticles,
     pagination: {
       page,
       pageSize,

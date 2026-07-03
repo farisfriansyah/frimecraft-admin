@@ -21,6 +21,7 @@ export async function createExperienceAction(formData: FormData) {
     const data = {
       userId: guard.userId,
       position: formData.get("position") as string,
+      positionEn: (formData.get("positionEn") as string) || null,
       slug: (formData.get("slug") as string) || null,
       companyId: formData.get("companyId") ? Number(formData.get("companyId")) : null,
       location: (formData.get("location") as string) || null,
@@ -31,6 +32,7 @@ export async function createExperienceAction(formData: FormData) {
       endYear: isCurrent || !formData.get("endYear") ? null : Number(formData.get("endYear")),
       isCurrent,
       description: (formData.get("description") as string) || null,
+      descriptionEn: (formData.get("descriptionEn") as string) || null,
       tags: (formData.get("tags") as string)?.split(",").map(t => t.trim()).filter(Boolean) || [],
       seoTitle: (formData.get("seoTitle") as string) || null,
       seoDescription: (formData.get("seoDescription") as string) || null,
@@ -65,6 +67,7 @@ export async function updateExperienceAction(id: number, formData: FormData) {
       where: { id },
       data: {
         position: formData.get("position") as string,
+        positionEn: (formData.get("positionEn") as string) || null,
         slug: (formData.get("slug") as string) || null,
         companyId: formData.get("companyId") ? Number(formData.get("companyId")) : null,
         location: (formData.get("location") as string) || null,
@@ -74,6 +77,7 @@ export async function updateExperienceAction(id: number, formData: FormData) {
         endYear: isCurrent ? null : Number(formData.get("endYear")),
         isCurrent,
         description: (formData.get("description") as string) || null,
+        descriptionEn: (formData.get("descriptionEn") as string) || null,
         tags: (formData.get("tags") as string)?.split(",").map(t => t.trim()).filter(Boolean) || [],
         seoTitle: (formData.get("seoTitle") as string) || null,
         seoDescription: (formData.get("seoDescription") as string) || null,

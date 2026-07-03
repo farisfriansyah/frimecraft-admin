@@ -67,26 +67,39 @@ export async function createArticleAction(formData: FormData) {
   }
 
   const excerpt = (formData.get("excerpt") as string) || null;
+  const excerptEn = (formData.get("excerptEn") as string) || null;
   const content = (formData.get("content") as string) || "";
+  const contentEn = (formData.get("contentEn") as string) || null;
   const isPublished = formData.get("isPublished") === "true";
   const seoTitle = (formData.get("seoTitle") as string) || null;
+  const seoTitleEn = (formData.get("seoTitleEn") as string) || null;
   const seoDescription = (formData.get("seoDescription") as string) || null;
+  const seoDescriptionEn = (formData.get("seoDescriptionEn") as string) || null;
   const keywords = (formData.get("keywords") as string) || null;
+  const keywordsEn = (formData.get("keywordsEn") as string) || null;
   const tags = (formData.get("tags") as string) || null;
+  const tagsEn = (formData.get("tagsEn") as string) || null;
   const sortNumber = parseOptionalSortNumber(formData.get("sortNumber"));
 
   const article = await db.article.create({
     data: {
       title,
+      titleEn: (formData.get("titleEn") as string) || null,
       slug,
       excerpt,
+      excerptEn,
       content,
+      contentEn,
       featuredImage,
       isPublished,
       seoTitle,
+      seoTitleEn,
       seoDescription,
+      seoDescriptionEn,
       keywords,
+      keywordsEn,
       tags,
+      tagsEn,
       sortNumber,
       authorId: guard.userId,
     },
@@ -123,27 +136,40 @@ export async function updateArticleAction(id: number, formData: FormData) {
   }
 
   const excerpt = (formData.get("excerpt") as string) || null;
+  const excerptEn = (formData.get("excerptEn") as string) || null;
   const content = (formData.get("content") as string) || "";
+  const contentEn = (formData.get("contentEn") as string) || null;
   const isPublished = formData.get("isPublished") === "true";
   const seoTitle = (formData.get("seoTitle") as string) || null;
+  const seoTitleEn = (formData.get("seoTitleEn") as string) || null;
   const seoDescription = (formData.get("seoDescription") as string) || null;
+  const seoDescriptionEn = (formData.get("seoDescriptionEn") as string) || null;
   const keywords = (formData.get("keywords") as string) || null;
+  const keywordsEn = (formData.get("keywordsEn") as string) || null;
   const tags = (formData.get("tags") as string) || null;
+  const tagsEn = (formData.get("tagsEn") as string) || null;
   const sortNumber = parseOptionalSortNumber(formData.get("sortNumber"));
 
   const updated = await db.article.update({
     where: { id },
     data: {
       title,
+      titleEn: (formData.get("titleEn") as string) || null,
       slug,
       excerpt,
+      excerptEn,
       content,
+      contentEn,
       featuredImage: featuredImage ?? undefined,
       isPublished,
       seoTitle,
+      seoTitleEn,
       seoDescription,
+      seoDescriptionEn,
       keywords,
+      keywordsEn,
       tags,
+      tagsEn,
       sortNumber,
     },
   });

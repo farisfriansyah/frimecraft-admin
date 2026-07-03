@@ -9,6 +9,10 @@ type Context = {
   }>;
 };
 
+function normalizeLang(value: string | null) {
+  return value?.toLowerCase() === "en" ? "en" : "id";
+}
+
 export async function GET(request: NextRequest, context: Context) {
   const ip = getClientIp(request);
   const rate = await checkRateLimit(`public:articles:detail:${ip}`, {
@@ -37,6 +41,7 @@ export async function GET(request: NextRequest, context: Context) {
   }
 
   const { slug } = await context.params;
+  const lang = normalizeLang(request.nextUrl.searchParams.get("lang"));
 
   const article = await db.article.findFirst({
     where: {
@@ -46,15 +51,22 @@ export async function GET(request: NextRequest, context: Context) {
     select: {
       id: true,
       title: true,
+      titleEn: true,
       slug: true,
       sortNumber: true,
       excerpt: true,
+      excerptEn: true,
       content: true,
+      contentEn: true,
       featuredImage: true,
       seoTitle: true,
+      seoTitleEn: true,
       seoDescription: true,
+      seoDescriptionEn: true,
       keywords: true,
+      keywordsEn: true,
       tags: true,
+      tagsEn: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -64,5 +76,22 @@ export async function GET(request: NextRequest, context: Context) {
     return NextResponse.json({ error: "Artikel tidak ditemukan" }, { status: 404 });
   }
 
-  return NextResponse.json({ success: true, data: article });
+  return NextResponse.json({
+    success: true,
+    data: {
+      id: article.id,
+      title: lang === "en" ? article.titleEn || article.title : article.title,
+      slug: article.slug,
+      sortNumber: article.sortNumber,
+      excerpt: lang === "en" ? article.excerptEn || article.excerpt : article.excerpt,
+      content: lang === "en" ? article.contentEn || article.content : article.content,
+      featuredImage: article.featuredImage,
+      seoTitle: lang === "en" ? article.seoTitleEn || article.seoTitle || article.titleEn || article.title : article.seoTitle,
+      seoDescription: lang === "en" ? article.seoDescriptionEn || article.seoDescription || article.excerptEn || article.excerpt : article.seoDescription,
+      keywords: lang === "en" ? article.keywordsEn || article.keywords : article.keywords,
+      tags: lang === "en" ? article.tagsEn || article.tags : article.tags,
+      createdAt: article.createdAt,
+      updatedAt: article.updatedAt,
+    },
+  });
 }

@@ -8,7 +8,12 @@ function stripHtml(input: string | null | undefined) {
   return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function normalizeLang(value: string | null) {
+  return value?.toLowerCase() === "en" ? "en" : "id";
+}
+
 export async function GET(request: NextRequest) {
+  const lang = normalizeLang(request.nextUrl.searchParams.get("lang"));
   const ip = getClientIp(request);
   const rate = await checkRateLimit(`public:profile-summary:${ip}`, {
     windowMs: 60_000,
@@ -82,6 +87,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         position: true,
+        positionEn: true,
         location: true,
         startMonth: true,
         startYear: true,
@@ -89,6 +95,7 @@ export async function GET(request: NextRequest) {
         endYear: true,
         isCurrent: true,
         description: true,
+        descriptionEn: true,
         company: {
           select: {
             name: true,
@@ -102,10 +109,13 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         institution: true,
+        institutionEn: true,
         degree: true,
+        degreeEn: true,
         startDate: true,
         endDate: true,
         description: true,
+        descriptionEn: true,
       },
     }),
     db.certification.findMany({
@@ -114,7 +124,9 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         title: true,
+        titleEn: true,
         issuer: true,
+        issuerEn: true,
         issueDate: true,
         url: true,
       },
@@ -125,35 +137,61 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         name: true,
+        nameEn: true,
         level: true,
         notes: true,
+        notesEn: true,
       },
     }),
   ]);
 
-  const topSkill = skills[0]?.name || "UI/UX and Frontend";
-  const topCompany = experiences[0]?.company?.name || "multiple products";
+  const topSkill = (lang === "en" ? skills[0]?.nameEn || skills[0]?.name : skills[0]?.name) || (lang === "en" ? "UI/UX and Frontend" : "UI/UX dan Frontend");
+  const topCompany = experiences[0]?.company?.name || (lang === "en" ? "multiple products" : "berbagai produk");
 
   const profile = {
     id: user.id,
     name: user.name || "Faris Friansyah",
     email: user.email,
     avatar: user.avatar,
-    headline: `${topSkill} Specialist`,
+    headline: lang === "en" ? `${topSkill} Specialist` : `Spesialis ${topSkill}`,
     about:
-      `I build and ship digital products across ${topCompany}. ` +
-      `Experienced in design-thinking, frontend architecture, and practical delivery from idea to production.`,
+      lang === "en"
+        ? `I build and ship digital products across ${topCompany}. Experienced in design-thinking, frontend architecture, and practical delivery from idea to production.`
+        : `Saya membangun dan merilis produk digital di ${topCompany}. Berpengalaman dalam design-thinking, arsitektur frontend, dan eksekusi praktis dari ide sampai produksi.`,
     role: user.role.name,
     experiences: experiences.map((item) => ({
-      ...item,
-      description: stripHtml(item.description),
+      id: item.id,
+      position: lang === "en" ? item.positionEn || item.position : item.position,
+      location: item.location,
+      startMonth: item.startMonth,
+      startYear: item.startYear,
+      endMonth: item.endMonth,
+      endYear: item.endYear,
+      isCurrent: item.isCurrent,
+      description: stripHtml(lang === "en" ? item.descriptionEn || item.description : item.description),
+      company: item.company,
     })),
     educations: educations.map((item) => ({
-      ...item,
-      description: stripHtml(item.description),
+      id: item.id,
+      institution: lang === "en" ? item.institutionEn || item.institution : item.institution,
+      degree: lang === "en" ? item.degreeEn || item.degree : item.degree,
+      startDate: item.startDate,
+      endDate: item.endDate,
+      description: stripHtml(lang === "en" ? item.descriptionEn || item.description : item.description),
     })),
-    certifications,
-    skills,
+    certifications: certifications.map((item) => ({
+      id: item.id,
+      title: lang === "en" ? item.titleEn || item.title : item.title,
+      issuer: lang === "en" ? item.issuerEn || item.issuer : item.issuer,
+      issueDate: item.issueDate,
+      url: item.url,
+    })),
+    skills: skills.map((item) => ({
+      id: item.id,
+      name: lang === "en" ? item.nameEn || item.name : item.name,
+      level: item.level,
+      notes: lang === "en" ? item.notesEn || item.notes : item.notes,
+    })),
   };
 
   return NextResponse.json({

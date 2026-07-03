@@ -34,11 +34,14 @@ type EducationRecord = {
 
 const schema = z.object({
   institution: z.string().min(1, "Institusi wajib diisi"),
+  institutionEn: z.string().nullable().optional(),
   degree: z.string().nullable().optional(),
+  degreeEn: z.string().nullable().optional(),
   startDate: z.string().min(1, "Tanggal mulai wajib diisi"),
   endDate: z.string().nullable().optional(),
   isCurrent: z.boolean().default(false),
   description: z.string().nullable().optional(),
+  descriptionEn: z.string().nullable().optional(),
   slug: z.string().nullable().optional(),
   seoTitle: z.string().max(60, "Maksimal 60 karakter untuk SEO").nullable().optional(),
   seoDescription: z.string().max(160, "Maksimal 160 karakter untuk SEO").nullable().optional(),
@@ -80,12 +83,15 @@ export default function EducationForm({ education, mode }: { education?: Educati
     resolver: zodResolver(schema),
     defaultValues: {
       institution: education?.institution || "",
+      institutionEn: (education as any)?.institutionEn || "",
       degree: education?.degree || "",
+      degreeEn: (education as any)?.degreeEn || "",
       description: education?.description || "",
       startDate: education?.startDate ? new Date(education.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       endDate: education?.endDate ? new Date(education.endDate).toISOString().split('T')[0] : "",
       isCurrent: education ? !education.endDate : false,
       slug: education?.slug || "",
+      descriptionEn: (education as any)?.descriptionEn || "",
       seoTitle: education?.seoTitle || "",
       seoDescription: education?.seoDescription || "",
       keywords: education?.keywords || "",
@@ -164,8 +170,16 @@ export default function EducationForm({ education, mode }: { education?: Educati
               {errors.institution && <p className="text-sm text-destructive">{errors.institution.message}</p>}
             </div>
             <div className="space-y-2 col-span-2">
+              <Label>Institusi (EN)</Label>
+              <Input {...register("institutionEn")} placeholder="English institution name" />
+            </div>
+            <div className="space-y-2 col-span-2">
               <Label>Gelar/Jurusan</Label>
               <Input {...register("degree")} placeholder="Contoh: S.Kom - Teknik Informatika" />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label>Degree / Major (EN)</Label>
+              <Input {...register("degreeEn")} placeholder="Example: Bachelor of Computer Science" />
             </div>
           </CardContent>
         </Card>
@@ -206,6 +220,17 @@ export default function EducationForm({ education, mode }: { education?: Educati
           <Controller
             control={control}
             name="description"
+            render={({ field }) => (
+              <RichTextEditor value={field.value || ""} onChange={field.onChange} />
+            )}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Description / Achievements (EN)</Label>
+          <Controller
+            control={control}
+            name="descriptionEn"
             render={({ field }) => (
               <RichTextEditor value={field.value || ""} onChange={field.onChange} />
             )}

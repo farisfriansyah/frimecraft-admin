@@ -77,6 +77,7 @@ model WorkExperience {
   company   Company? @relation(fields: [companyId], references: [id])
 
   position String // Jabatan / Nama Bagian
+  positionEn String?
   location String? // Lokasi (optional)
   slug     String?
 
@@ -88,6 +89,7 @@ model WorkExperience {
   isCurrent Boolean @default(false)
 
   description String?  @db.Text // Rich text
+  descriptionEn String? @db.Text
   tags        String[] @default([])
 
   // SEO Fields
@@ -105,11 +107,14 @@ model Education {
   id          Int       @id @default(autoincrement())
   userId      Int
   institution String
+  institutionEn String?
   degree      String?
+  degreeEn    String?
   slug        String?
   startDate   DateTime?
   endDate     DateTime?
   description String?
+  descriptionEn String?
 
   user User @relation(fields: [userId], references: [id])
 
@@ -129,9 +134,11 @@ model Skill {
   id     Int     @id @default(autoincrement())
   userId Int
   name   String
+  nameEn String?
   slug   String?
   level  Int? // 0-100
   notes  String?
+  notesEn String?
 
   user User @relation(fields: [userId], references: [id])
 
@@ -166,8 +173,10 @@ model Certification {
   id        Int       @id @default(autoincrement())
   userId    Int
   title     String
+  titleEn   String?
   slug      String?
   issuer    String?
+  issuerEn  String?
   issueDate DateTime?
   url       String?
 
@@ -185,9 +194,11 @@ model Certification {
 model Portfolio {
   id          Int     @id @default(autoincrement())
   title       String
+  titleEn     String?
   slug        String?
   sortNumber  Int?
   description String? @db.Text
+  descriptionEn String? @db.Text
   imageUrl    String?
   projectUrl  String?
   workForId   Int?
@@ -198,8 +209,12 @@ model Portfolio {
 
   // SEO Fields
   seoTitle       String?
+  seoTitleEn     String?
   seoDescription String?
+  seoDescriptionEn String?
   keywords       String? // comma-separated
+  keywordsEn     String? // comma-separated
+  tagsEn         String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -232,18 +247,25 @@ model Company {
 model Article {
   id        Int      @id @default(autoincrement())
   title     String
+  titleEn   String?
   slug      String   @unique
   sortNumber Int?
   excerpt   String?  @db.Text
+  excerptEn String?  @db.Text
   content   String   @db.Text
+  contentEn String?  @db.Text
   featuredImage String? // Featured image URL
   isPublished Boolean @default(false)
 
   // SEO Fields
   seoTitle    String?
+  seoTitleEn  String?
   seoDescription String?
+  seoDescriptionEn String?
   keywords    String? // comma-separated
+  keywordsEn  String? // comma-separated
   tags        String? // comma-separated
+  tagsEn      String? // comma-separated
 
   authorId  Int
   author    User     @relation(fields: [authorId], references: [id])
@@ -281,6 +303,17 @@ model FrontendSetting {
   seoKeywords    String?
   canonicalUrl   String?
   ogImageUrl     String?
+  ogImageAlt     String?
+  organizationName String?
+  organizationLogoUrl String?
+  defaultAuthorName String?
+  defaultLocale  String?
+  twitterHandle  String?
+  socialProfileUrls String?
+  clarityProjectId String?
+  googleSiteVerification String?
+  bingSiteVerification String?
+  themeColor     String?
   footerText     String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

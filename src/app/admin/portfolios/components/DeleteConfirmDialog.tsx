@@ -4,10 +4,11 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/src/app/ui/alert-dialog";
 import { Button } from "@/src/app/ui/button";
 import { Trash2 } from "lucide-react";
+import { withResolvedAdminBasePath } from "@/src/lib/app-config";
 
 export default function DeleteConfirmDialog({ portfolioId, title }: { portfolioId: number; title: string }) {
   const handleDelete = async () => {
-    await fetch(`/api/portfolios/${portfolioId}`, { method: "DELETE" });
+    await fetch(withResolvedAdminBasePath(`/api/portfolios/${portfolioId}`), { method: "DELETE" });
     window.location.reload(); // atau gunakan revalidatePath di server action
   };
 

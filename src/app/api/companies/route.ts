@@ -1,24 +1,58 @@
 // src/app/api/companies/route.ts
 import { db } from "@/src/lib/prisma";
-import { guardApiPermission } from "@/src/lib/security/guards";
+import { hasPermission } from "@/src/lib/rbac";
+import { getSession } from "@/src/lib/session";
 import { logSecurityEvent } from "@/src/lib/security/audit";
 import { checkRateLimit, getClientIp } from "@/src/lib/security/rate-limit";
 import { companyPayloadSchema } from "@/src/lib/security/validation";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+
+type CompaniesGuardResult =
+  | { ok: true; userId: number }
+  | { ok: false; userId: number | null; response: NextResponse };
+
+async function guardCompaniesPermission(requiredPermissions: string[]): Promise<CompaniesGuardResult> {
+  const session = await getSession();
+  if (!session?.userId) {
+    return {
+      ok: false,
+      userId: null,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  const checks = await Promise.all(requiredPermissions.map((permission) => hasPermission(session.userId, permission)));
+  if (!checks.some(Boolean)) {
+    return {
+      ok: false,
+      userId: session.userId,
+      response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
+  }
+
+  return { ok: true, userId: session.userId };
+}
 
 export async function POST(req: NextRequest) {
   const route = req.nextUrl.pathname;
   const method = req.method;
   const ip = getClientIp(req);
 
-  const guard = await guardApiPermission("company.manage");
+  const guard = await guardCompaniesPermission([
+    "company.manage",
+    "experience.create",
+    "experience.update",
+    "portfolio.create",
+    "portfolio.update",
+  ]);
   if (!guard.ok) {
     logSecurityEvent({
       event: "companies.post.forbidden",
       status: "deny",
       route,
       method,
-      actorId: null,
+      actorId: guard.userId,
       detail: { ip, status: guard.response.status },
     });
     return guard.response;
@@ -48,7 +82,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    logSecurityEvent({
+      event: "companies.post.invalid_payload",
+      status: "deny",
+      route,
+      method,
+      actorId: guard.userId,
+      detail: { ip, reason: "invalid_json" },
+    });
+    return NextResponse.json({ error: "Payload tidak valid" }, { status: 400 });
+  }
+
   const parsed = companyPayloadSchema.safeParse(body);
   if (!parsed.success) {
     logSecurityEvent({
@@ -63,20 +111,48 @@ export async function POST(req: NextRequest) {
   }
 
   const { name } = parsed.data;
-  const company = await db.company.create({
-    data: { name },
-  });
+  try {
+    const company = await db.company.create({
+      data: { name },
+    });
 
-  logSecurityEvent({
-    event: "companies.post.success",
-    status: "success",
-    route,
-    method,
-    actorId: guard.userId,
-    detail: { ip, companyId: company.id },
-  });
+    logSecurityEvent({
+      event: "companies.post.success",
+      status: "success",
+      route,
+      method,
+      actorId: guard.userId,
+      detail: { ip, companyId: company.id, existed: false },
+    });
 
-  return NextResponse.json(company);
+    return NextResponse.json({ company, existed: false });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const existing = await db.company.findUnique({ where: { name } });
+      if (existing) {
+        logSecurityEvent({
+          event: "companies.post.success",
+          status: "success",
+          route,
+          method,
+          actorId: guard.userId,
+          detail: { ip, companyId: existing.id, existed: true },
+        });
+        return NextResponse.json({ company: existing, existed: true });
+      }
+      return NextResponse.json({ error: "Perusahaan sudah ada" }, { status: 409 });
+    }
+
+    logSecurityEvent({
+      event: "companies.post.error",
+      status: "error",
+      route,
+      method,
+      actorId: guard.userId,
+      detail: { ip },
+    });
+    return NextResponse.json({ error: "Gagal menyimpan perusahaan" }, { status: 500 });
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -84,14 +160,20 @@ export async function GET(request: NextRequest) {
   const method = request.method;
   const ip = getClientIp(request);
 
-  const guard = await guardApiPermission("company.manage");
+  const guard = await guardCompaniesPermission([
+    "company.manage",
+    "experience.create",
+    "experience.update",
+    "portfolio.create",
+    "portfolio.update",
+  ]);
   if (!guard.ok) {
     logSecurityEvent({
       event: "companies.get.forbidden",
       status: "deny",
       route,
       method,
-      actorId: null,
+      actorId: guard.userId,
       detail: { ip, status: guard.response.status },
     });
     return guard.response;

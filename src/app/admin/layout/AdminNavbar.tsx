@@ -12,6 +12,7 @@ import {
 } from "@/src/app/ui/dropdown-menu";
 import { LogOut, Settings, User } from "lucide-react";
 import { logoutAction } from "@/src/actions/auth-actions";
+import { withResolvedAdminBasePath } from "@/src/lib/app-config";
 import Link from "next/link";
 
 // Gunakan interface yang lebih ketat agar tidak ada error undefined di UI
@@ -46,7 +47,7 @@ export default function AdminNavbar({ currentUser }: AdminNavbarProps) {
         if (result.success) {
           // window.location.href adalah cara paling ampuh untuk memaksa 
           // browser membersihkan cache memori Next.js saat logout
-          window.location.href = "/login";
+          window.location.href = withResolvedAdminBasePath("/login");
         } else {
           console.error("Logout gagal:", result);
         }

@@ -5,7 +5,7 @@ import { db } from "@/src/lib/prisma";
 import RolePermissionsGrid from "@/src/app/admin/roles/components/RolePermissionsGrid"; // PERBAIKAN: Impor lurus ke folder components yang valid
 import { Button } from "@/src/app/ui/button";
 import Link from "next/link";
-import { ShieldCheck, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
 export const metadata = { title: "Roles • Admin" };
 
@@ -36,12 +36,6 @@ export default async function RolesManagementPage() {
         
         {/* Slot Tombol Kanan: Pintasan Navigasi kembali ke Manajemen Users */}
         <div className="flex items-center gap-2">
-          <Button asChild size="lg" variant="outline">
-            <Link href="/admin/rbac-debug">
-              <ShieldCheck className="mr-2 h-5 w-5" />
-              RBAC Debug
-            </Link>
-          </Button>
           <Button asChild size="lg" variant="outline">
             <Link href="/admin/users">
               <Users className="mr-2 h-5 w-5" />

@@ -11,8 +11,10 @@ import { Label } from "@/src/app/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/app/ui/popover";
 import { cn } from "@/src/lib/utils";
 import { toast } from "sonner";
+import { withResolvedAdminBasePath } from "@/src/lib/app-config";
 
 type Company = { id: number; name: string; logoUrl?: string | null };
+type CompanyCreateResponse = { company?: Company; existed?: boolean; error?: string };
 
 type Props = {
   companies: Company[];
@@ -55,27 +57,48 @@ export default function CompanySelect({ companies: initialCompanies, value, onCh
     setLoading(true);
 
     try {
-      const res = await fetch("/api/companies", {
+      const res = await fetch(withResolvedAdminBasePath("/api/companies"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName.trim() }),
       });
 
-      if (!res.ok) throw new Error("Gagal membuat perusahaan");
+      let payload: CompanyCreateResponse = {} as CompanyCreateResponse;
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        payload = (await res.json()) as CompanyCreateResponse;
+      } else {
+        const raw = await res.text();
+        payload = { error: raw ? "Respons server tidak valid" : "Respons server kosong" };
+      }
 
-      const newCompany: Company = await res.json();
+      if (!res.ok) {
+        throw new Error(payload.error || "Gagal membuat perusahaan");
+      }
+
+      if (!payload.company) {
+        throw new Error("Respons server tidak valid");
+      }
+
+      const newCompany = payload.company;
 
       // UPDATE GLOBAL STATE → SEMUA SELECT LANGSUNG UPDATE!
-      globalCompanies = [...globalCompanies, newCompany];
+      globalCompanies = globalCompanies.some((company) => company.id === newCompany.id)
+        ? globalCompanies
+        : [...globalCompanies, newCompany];
       listeners.forEach(l => l(globalCompanies));
 
       onChange(newCompany.id);
-      toast.success(`"${newCompany.name}" berhasil ditambahkan!`);
+      if (payload.existed) {
+        toast.success(`"${newCompany.name}" sudah ada dan langsung dipilih.`);
+      } else {
+        toast.success(`"${newCompany.name}" berhasil ditambahkan!`);
+      }
 
       setNewName("");
       setDialogOpen(false);
-    } catch (error) {
-      toast.error("Gagal membuat perusahaan");
+    } catch (error: any) {
+      toast.error(error?.message || "Gagal membuat perusahaan");
     } finally {
       setLoading(false);
     }

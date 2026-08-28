@@ -62,12 +62,3 @@ Dokumen ini adalah acuan resmi role dan permission untuk aplikasi admin.
 
 1. Role SUPER ADMIN tidak boleh dihapus.
 2. Permission all wajib tetap ada untuk role SUPER ADMIN.
-3. Akses API admin untuk RBAC debug wajib permission role.manage.
-
-## Endpoint Debug Effective Permissions
-
-1. Method: GET
-2. Path: /api/admin/rbac/effective-permissions
-3. Query opsional: userId
-4. Auth: wajib role.manage
-5. Tujuan: membantu debugging hasil akhir permission per user.

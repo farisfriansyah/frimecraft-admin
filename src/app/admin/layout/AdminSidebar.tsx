@@ -10,7 +10,6 @@ import {
   User,
   Award,
   FileText,
-  ShieldCheck,
   LogOut,
   Menu,
   X,
@@ -20,6 +19,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/src/app/ui/sheet";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/src/lib/utils";
+import { withAdminBasePath } from "@/src/lib/app-config";
 import { useState } from "react";
 
 const navItems = [
@@ -32,7 +32,6 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: User },
   { href: "/admin/certifications", label: "Certifications", icon: Award },
   { href: "/admin/articles", label: "Articles", icon: FileText },
-  { href: "/admin/rbac-debug", label: "RBAC Debug", icon: ShieldCheck },
 ];
 
 export default function AdminSidebar() {
@@ -91,7 +90,7 @@ export default function AdminSidebar() {
 
       {/* Logout */}
       <div className="border-t p-4">
-        <form action="/api/auth/logout" method="post">
+        <form action={withAdminBasePath("/api/auth/logout")} method="post">
           <Button
             type="submit"
             variant="ghost"

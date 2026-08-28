@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src
 import { Input } from "@/src/app/ui/input";
 import { Label } from "@/src/app/ui/label";
 import { Textarea } from "@/src/app/ui/textarea";
+import { withResolvedAdminBasePath } from "@/src/lib/app-config";
 import { toast } from "sonner";
 
 type FrontendSettingsPayload = {
@@ -61,7 +62,7 @@ export default function FrontendSettingsForm() {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/admin/frontend-settings", { cache: "no-store" });
+        const res = await fetch(withResolvedAdminBasePath("/api/admin/frontend-settings"), { cache: "no-store" });
         const payload = await res.json();
         if (!res.ok) {
           toast.error(payload?.error || "Gagal memuat frontend settings");
@@ -111,7 +112,7 @@ export default function FrontendSettingsForm() {
     setSaving(true);
 
     try {
-      const res = await fetch("/api/admin/frontend-settings", {
+      const res = await fetch(withResolvedAdminBasePath("/api/admin/frontend-settings"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

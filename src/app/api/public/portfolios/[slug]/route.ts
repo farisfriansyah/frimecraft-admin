@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/src/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/src/lib/security/rate-limit";
 import { logSecurityEvent } from "@/src/lib/security/audit";
+import { getPublicPortfolioImageUrl } from "@/src/lib/portfolio-public-image";
 
 type Context = {
   params: Promise<{
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest, context: Context) {
       slug: portfolio.slug,
       sortNumber: portfolio.sortNumber,
       description: lang === "en" ? portfolio.descriptionEn || portfolio.description : portfolio.description,
-      imageUrl: portfolio.imageUrl,
+      imageUrl: getPublicPortfolioImageUrl(portfolio.imageUrl, request.url),
       projectUrl: portfolio.projectUrl,
       tags: lang === "en" ? portfolio.tagsEn || portfolio.tags : portfolio.tags,
       featured: portfolio.featured,

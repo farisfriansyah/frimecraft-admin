@@ -8,6 +8,8 @@ import { Button } from "@/src/app/ui/button";
 import { Badge } from "@/src/app/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
+import { withAdminBasePath } from "@/src/lib/app-config";
+import { getPortfolioImageSrc } from "@/src/lib/portfolio-image";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -94,10 +96,11 @@ export default async function DashboardPage() {
                   >
                     {portfolio.imageUrl ? (
                       <Image
-                        src={portfolio.imageUrl}
+                        src={withAdminBasePath(getPortfolioImageSrc(portfolio.imageUrl) ?? portfolio.imageUrl)}
                         alt={portfolio.title}
                         width={80}
                         height={60}
+                        unoptimized
                         className="rounded-md object-cover h-16 w-20"
                       />
                     ) : (

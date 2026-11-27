@@ -7,7 +7,10 @@ function normalizeBasePath(value?: string | null) {
 }
 
 export function getAdminBasePath() {
-  return normalizeBasePath(process.env.APP_BASE_PATH || "/frime-admin");
+  const configuredBasePath = process.env.APP_BASE_PATH;
+  return normalizeBasePath(
+    configuredBasePath && configuredBasePath !== "/" ? configuredBasePath : "/frime-admin",
+  );
 }
 
 export function getAdminCookiePath() {
@@ -18,10 +21,19 @@ export function getPublicSiteUrl() {
   return (process.env.PUBLIC_SITE_URL || "https://frimecraft.com").replace(/\/$/, "");
 }
 
-export function withAdminBasePath(pathname: string) {
+function addBasePath(pathname: string, basePath: string) {
+  if (/^[a-z][a-z\d+.-]*:/i.test(pathname) || pathname.startsWith("//")) return pathname;
+
   const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
-  const basePath = getAdminBasePath();
+  if (!basePath || normalizedPath === basePath || normalizedPath.startsWith(`${basePath}/`)) {
+    return normalizedPath;
+  }
+
   return `${basePath}${normalizedPath}` || normalizedPath;
+}
+
+export function withAdminBasePath(pathname: string) {
+  return addBasePath(pathname, getAdminBasePath());
 }
 
 function detectAdminBasePathFromPathname(pathname: string) {
@@ -44,10 +56,9 @@ export function withResolvedAdminBasePath(pathname: string) {
     return withAdminBasePath(pathname);
   }
 
-  const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
   const detectedBasePath = detectAdminBasePathFromPathname(window.location.pathname);
   const fallbackBasePath = getAdminBasePath();
   const effectiveBasePath = detectedBasePath || fallbackBasePath;
 
-  return `${effectiveBasePath}${normalizedPath}` || normalizedPath;
+  return addBasePath(pathname, effectiveBasePath);
 }

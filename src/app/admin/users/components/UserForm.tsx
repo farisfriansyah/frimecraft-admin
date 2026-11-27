@@ -82,8 +82,8 @@ export default function UserForm({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-12">
-            <div className="space-y-6 lg:col-span-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid min-w-0 gap-6 xl:grid-cols-12">
+            <div className="min-w-0 space-y-6 xl:col-span-8">
                 <div className="flex items-center gap-4 mb-2">
                     <Button variant="ghost" size="icon" asChild><Link href="/admin/users"><ArrowLeft className="h-5 w-5" /></Link></Button>
                     <h1 className="text-2xl font-bold">{isEdit ? "Edit" : "Tambah"} Pengguna</h1>
@@ -156,7 +156,7 @@ export default function UserForm({
                 )}
             </div>
 
-            <div className="lg:col-span-4">
+            <div className="min-w-0 xl:col-span-4">
                 <div className="sticky top-20 space-y-3 rounded-lg border bg-card p-6 shadow-sm">
                     <Button type="submit" className="w-full" disabled={isPending}>
                         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}

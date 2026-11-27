@@ -155,8 +155,8 @@ export default function ArticleForm({ article, mode }: Props) {
       </div>
 
       <div className="py-10">
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-10 lg:grid-cols-12">
-          <div className="space-y-8 lg:col-span-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid min-w-0 gap-10 xl:grid-cols-12">
+          <div className="min-w-0 space-y-8 xl:col-span-8">
             {/* Title & Slug */}
             <Card>
               <CardHeader>
@@ -369,7 +369,7 @@ export default function ArticleForm({ article, mode }: Props) {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-4">
+          <div className="min-w-0 xl:col-span-4">
             <div className="sticky top-20 space-y-3 rounded-lg border bg-card p-6 shadow-sm">
               <div className="space-y-4">
                 <div>

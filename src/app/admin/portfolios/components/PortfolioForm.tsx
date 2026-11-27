@@ -18,6 +18,7 @@ import ImageUpload from "./ImageUpload";
 import { TagsInput } from "@/src/app/ui/tags-input";
 import { createPortfolioAction, updatePortfolioAction } from "@/src/actions/portfolio-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/app/ui/card";
+import { useState } from "react";
 
 const schema = z.object({
   title: z.string().min(3, "Minimal 3 karakter"),
@@ -84,6 +85,7 @@ type Props = {
 export default function PortfolioForm({ portfolio, companies, mode }: Props) {
   const router = useRouter();
   const isEdit = mode === "edit";
+  const [removeImage, setRemoveImage] = useState(false);
 
   const {
     register,
@@ -149,6 +151,7 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
           else formData.append(key, String(value));
         }
       });
+      if (isEdit) formData.set("removeImage", String(removeImage));
 
       if (isEdit && portfolio) {
         await updatePortfolioAction(portfolio.id, formData);
@@ -190,9 +193,9 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
 
       {/* Main Content */}
       <div className="py-10">
-        <form onSubmit={handleSubmit((data) => onSubmit(data, false))} className="grid gap-10 lg:grid-cols-12">
+        <form onSubmit={handleSubmit((data) => onSubmit(data, false))} className="grid min-w-0 gap-10 xl:grid-cols-12">
           {/* Left Column - Form Fields */}
-          <div className="space-y-8 lg:col-span-8">
+          <div className="min-w-0 space-y-8 xl:col-span-8">
             {/* Title & Slug */}
             <div className="space-y-2">
               <Label htmlFor="title" className="text-base font-medium">
@@ -403,13 +406,16 @@ export default function PortfolioForm({ portfolio, companies, mode }: Props) {
           </div>
 
           {/* Right Column - Image + Actions */}
-          <div className="space-y-8 lg:col-span-4">
+          <div className="min-w-0 space-y-8 xl:col-span-4">
             {/* Cover Image */}
             <div className="space-y-3">
               <Label className="text-base font-medium">Cover Image</Label>
               <div className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 text-center">
                 <ImageUpload
-                  onChange={(file) => setValue("image", file)}
+                  onChange={(file, removeCurrentImage) => {
+                    setValue("image", file);
+                    setRemoveImage(removeCurrentImage);
+                  }}
                   previewUrl={portfolio?.imageUrl}
                 />
               </div>

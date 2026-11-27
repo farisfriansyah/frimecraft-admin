@@ -33,12 +33,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   };
 
   return (
-    <div className="flex bg-background">
+    <div className="flex min-h-screen min-w-0 w-full bg-background">
       <AdminSidebar />
-      <div className="flex flex-col flex-1">
+      <div className="flex min-w-0 flex-1 flex-col">
         {/* Navbar menerima currentUser sebagai prop */}
         <AdminNavbar currentUser={currentUser} />
-        <main className="p-6">{children}</main>
+        <main className="min-w-0 w-full p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { Button } from "@/src/app/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { hasPermission } from "@/src/lib/rbac"; // Impor helper RBAC pusat
+import { ImportPortfoliosButton } from "@/src/app/admin/portfolios/components/ImportPortfoliosButton";
 
 export const metadata = { title: "Portfolios • Admin" };
 
@@ -48,15 +49,21 @@ export default async function PortfoliosPage() {
         <p className="text-muted-foreground mt-2">Kelola semua project portfolio kamu</p>
       </div>
 
-      {/* HANYA MUNCUL JIKA USER MEMILIKI IZIN portfolio.create ATAU all */}
       {canCreate && (
-        <Button asChild size="lg">
-          {/* PASTIKAN: Alamat href ini sama persis dengan lokasi folder fisik file create kamu */}
-          <Link href="/admin/portfolios/create">
-            <Plus className="mr-2 h-5 w-5" />
-            Tambah Portfolio
-          </Link>
-        </Button>
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <Link href="/admin/portfolios/create">
+                <Plus className="mr-2 h-5 w-5" />
+                Tambah Portfolio
+              </Link>
+            </Button>
+            <ImportPortfoliosButton />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            JSON berupa array (atau object dengan properti <code>portfolios</code>); setiap item wajib memiliki <code>title</code>. Field lain mengikuti skema portfolio, sedangkan gambar diabaikan.
+          </p>
+        </div>
       )}
 
       {/* Oper data izin ke tabel agar tombol Edit/Delete menyesuaikan */}

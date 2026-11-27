@@ -31,10 +31,8 @@ export async function loginAction(formData: FormData) {
     // 2. Hancurkan sesi lama
     await destroySession();
 
-    // 3. Buat sesi baru DENGAN ROLE
-    // Pastikan user.role.name tersedia di objek user hasil verifyLogin
-    const role = (user.role as any)?.name || "USER";
-    await createSession(user.id, role);
+    // 3. Buat sesi baru dengan role yang dikembalikan verifyLogin
+    await createSession(user.id, user.role);
 
     // 4. Update waktu login
     await db.user.update({

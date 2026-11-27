@@ -90,8 +90,8 @@ export default function LanguageForm({ language, mode }: { language?: Language; 
   };
 
   return (
-    <form onSubmit={handleSubmit((data) => onSubmit(data, false))} className="grid gap-10 lg:grid-cols-12">
-      <div className="space-y-8 lg:col-span-8">
+    <form onSubmit={handleSubmit((data) => onSubmit(data, false))} className="grid min-w-0 gap-10 xl:grid-cols-12">
+      <div className="min-w-0 space-y-8 xl:col-span-8">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/admin/languages"><ArrowLeft className="h-5 w-5" /></Link>
@@ -130,7 +130,7 @@ export default function LanguageForm({ language, mode }: { language?: Language; 
         </div>
       </div>
 
-      <div className="lg:col-span-4">
+      <div className="min-w-0 xl:col-span-4">
         <div className="sticky top-20 space-y-3 rounded-lg border bg-card p-6 shadow-sm">
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Menyimpan..." : "Simpan Bahasa"}

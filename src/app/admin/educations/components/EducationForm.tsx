@@ -140,8 +140,8 @@ export default function EducationForm({ education, mode }: { education?: Educati
   };
 
   return (
-    <form onSubmit={handleSubmit((d) => onSubmit(d, false))} className="grid gap-6 lg:grid-cols-12">
-      <div className="space-y-6 lg:col-span-8">
+    <form onSubmit={handleSubmit((d) => onSubmit(d, false))} className="grid min-w-0 gap-6 xl:grid-cols-12">
+      <div className="min-w-0 space-y-6 xl:col-span-8">
         <div className="flex items-center gap-4 mb-2">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/admin/educations"><ArrowLeft className="h-5 w-5" /></Link>
@@ -303,7 +303,7 @@ export default function EducationForm({ education, mode }: { education?: Educati
       </div>
 
       {/* Sidebar Aksi */}
-      <div className="lg:col-span-4">
+      <div className="min-w-0 xl:col-span-4">
         <div className="sticky top-20 space-y-3 rounded-lg border bg-card p-6 shadow-sm">
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}

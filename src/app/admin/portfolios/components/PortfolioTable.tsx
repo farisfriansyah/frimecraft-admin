@@ -46,6 +46,8 @@ import { Badge } from "@/src/app/ui/badge";
 import Link from "next/link";
 import { toast } from "sonner";
 import { deletePortfolioAction } from "@/src/actions/portfolio-actions";
+import { withResolvedAdminBasePath } from "@/src/lib/app-config";
+import { getPortfolioImageSrc } from "@/src/lib/portfolio-image";
 
 export type Portfolio = {
   id: number;
@@ -104,7 +106,7 @@ export default function PortfolioTable({ initialData }: Props) {
         <div className="flex items-center gap-3 min-w-0">
           {row.original.imageUrl ? (
             <img
-              src={row.original.imageUrl}
+              src={withResolvedAdminBasePath(getPortfolioImageSrc(row.original.imageUrl) ?? row.original.imageUrl)}
               alt={row.original.title}
               className="h-10 w-10 rounded-md object-cover flex-shrink-0"
             />

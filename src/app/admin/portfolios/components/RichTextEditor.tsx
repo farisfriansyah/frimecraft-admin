@@ -20,7 +20,7 @@ const TiptapEditor = dynamic(
         editorProps: {
           attributes: {
             class:
-              "prose prose-sm dark:prose-invert max-w-none min-h-48 rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+              "prose prose-sm dark:prose-invert max-w-none min-w-0 min-h-48 break-words rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
           },
         },
       });
@@ -46,7 +46,7 @@ const TiptapEditor = dynamic(
               <ListOrdered className="h-4 w-4" />
             </Button>
           </div>
-          <EditorContent editor={editor} className="p-4 prose prose-sm max-w-none" />
+          <EditorContent editor={editor} className="min-w-0 max-w-full p-4 prose prose-sm break-words" />
         </div>
       );
     };

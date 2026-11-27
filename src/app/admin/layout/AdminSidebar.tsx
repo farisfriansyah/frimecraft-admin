@@ -107,7 +107,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-64 border-r bg-background h-screen sticky top-0">
+      <aside className="hidden h-screen w-64 shrink-0 border-r bg-background sticky top-0 md:block">
         <NavContent />
       </aside>
 
